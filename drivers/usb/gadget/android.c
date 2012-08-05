@@ -45,6 +45,7 @@
 #include "composite.c"
 
 #include "f_diag.c"
+#include "f_qdss.c"
 #include "f_rmnet_smd.c"
 #include "f_rmnet_sdio.c"
 #include "f_rmnet_smd_sdio.c"
@@ -731,6 +732,37 @@ static struct android_usb_function diag_function = {
 	.cleanup	= diag_function_cleanup,
 	.bind_config	= diag_function_bind_config,
 	.attributes	= diag_function_attributes,
+};
+
+/* DEBUG */
+static int qdss_function_init(struct android_usb_function *f,
+	struct usb_composite_dev *cdev)
+{
+	return qdss_setup();
+}
+
+static void qdss_function_cleanup(struct android_usb_function *f)
+{
+	qdss_cleanup();
+}
+
+static int qdss_function_bind_config(struct android_usb_function *f,
+					struct usb_configuration *c)
+{
+	int  err = -1;
+
+	err = qdss_bind_config(c, "qdss");
+	if (err)
+		pr_err("qdss: Cannot open channel qdss");
+
+	return err;
+}
+
+static struct android_usb_function qdss_function = {
+	.name		= "qdss",
+	.init		= qdss_function_init,
+	.cleanup	= qdss_function_cleanup,
+	.bind_config	= qdss_function_bind_config,
 };
 
 /* SERIAL */
@@ -1443,6 +1475,7 @@ static struct android_usb_function *supported_functions[] = {
 	&rmnet_smd_sdio_function,
 	&rmnet_function,
 	&diag_function,
+	&qdss_function,
 	&serial_function,
 	&adb_function,
 	&ccid_function,
