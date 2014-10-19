@@ -5,6 +5,20 @@ if CUST_PANTECH_H
 #
 menu "Pantech Cust Feature Section"
 
+config PANTECH_ERR_CRASH_LOGGING
+	bool
+
+config PANTECH_FS_AUTO_REPAIR
+	bool
+
+config PANTECH_PMIC
+	bool
+
+config PANTECH_PMIC_PWRKEY
+	bool
+
+config PANTECH_PMIC_RESET_REASON
+	bool
 
 endmenu # PANTECH Cust feature section
 
