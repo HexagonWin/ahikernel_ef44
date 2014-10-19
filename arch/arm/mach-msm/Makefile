@@ -1,5 +1,20 @@
 CFLAGS_scm.o :=$(call as-instr,.arch_extension sec,-DREQUIRES_SEC=1)
 
+# Replace with own model's:
+# board-8960.o, board-8960-camera.o board-8960-display.o 
+# board-8960-gpiomux.o board-8960-pmic.o board-8960-regulator.o 
+# clock-8960.o, devices-8960.o
+
+# Default QCOM names
+BOARD_OBJ_NAME:=board-8960.o 
+BOARD_CAMERA_OBJ_NAME:=board-8960-camera.o
+BOARD_DISPLAY_OBJ_NAME:=board-8960-display.o
+BOARD_GPIOMUX_OBJ_NAME:=board-8960-gpiomux.o
+BOARD_PMIC_OBJ_NAME:=board-8960-pmic.o
+BOARD_REGULATOR_OBJ_NAME:=board-8960-regulator.o
+CLOCK_OBJ_NAME:=clock-8960.o
+DEVICES_OBJ_NAME:=devices-8960.o
+
 obj-y += io.o dma.o memory.o
 ifndef CONFIG_ARM_ARCH_TIMER
 obj-y += timer.o
@@ -263,20 +278,20 @@ obj-$(CONFIG_ARCH_MSM7X30) += board-msm7x30.o devices-msm7x30.o memory_topology.
 obj-$(CONFIG_ARCH_MSM7X30) += clock-local.o clock-7x30.o acpuclock-7x30.o clock-pll.o
 obj-$(CONFIG_MACH_MSM7X25_SURF) += board-msm7x27.o devices-msm7x25.o
 obj-$(CONFIG_MACH_MSM7X25_FFA) += board-msm7x27.o devices-msm7x25.o
-obj-$(CONFIG_ARCH_MSM8960) += clock-local.o clock-dss-8960.o clock-8960.o clock-rpm.o clock-pll.o
+obj-$(CONFIG_ARCH_MSM8960) += clock-local.o clock-dss-8960.o $(CLOCK_OBJ_NAME) clock-rpm.o clock-pll.o
 obj-$(CONFIG_ARCH_MSM8960) += footswitch-8x60.o
 obj-$(CONFIG_ARCH_MSM8960) += acpuclock-8960.o acpuclock-8960ab.o
 obj-$(CONFIG_ARCH_MSM8960) += memory_topology.o
 obj-$(CONFIG_ARCH_MSM8960) += saw-regulator.o
-obj-$(CONFIG_ARCH_MSM8960) += devices-8960.o
-obj-$(CONFIG_ARCH_APQ8064) += devices-8960.o devices-8064.o
+obj-$(CONFIG_ARCH_MSM8960) += $(DEVICES_OBJ_NAME)
+obj-$(CONFIG_ARCH_APQ8064) += $(DEVICES_OBJ_NAME) devices-8064.o
 obj-$(CONFIG_ARCH_APQ8064) += acpuclock-8064.o
-board-8960-all-objs += board-8960.o board-8960-camera.o board-8960-display.o board-8960-pmic.o board-8960-storage.o board-8960-gpiomux.o
+board-8960-all-objs += $(BOARD_OBJ_NAME) $(BOARD_CAMERA_OBJ_NAME) $(BOARD_DISPLAY_OBJ_NAME) $(BOARD_PMIC_OBJ_NAME) board-8960-storage.o $(BOARD_GPIOMUX_OBJ_NAME)
 board-8930-all-objs += board-8930.o board-8930-camera.o board-8930-display.o board-8930-pmic.o board-8930-storage.o board-8930-gpiomux.o devices-8930.o board-8930-gpu.o
 board-8064-all-objs += board-8064.o board-8064-pmic.o board-8064-storage.o board-8064-gpiomux.o board-8064-camera.o board-8064-display.o board-8064-gpu.o
-obj-$(CONFIG_MACH_MSM8960_CDP) += board-8960-all.o board-8960-regulator.o
-obj-$(CONFIG_MACH_MSM8960_MTP) += board-8960-all.o board-8960-regulator.o
-obj-$(CONFIG_MACH_MSM8960_FLUID) += board-8960-all.o board-8960-regulator.o
+obj-$(CONFIG_MACH_MSM8960_CDP) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
+obj-$(CONFIG_MACH_MSM8960_MTP) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
+obj-$(CONFIG_MACH_MSM8960_FLUID) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
 obj-$(CONFIG_MACH_MSM8930_CDP) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o
 obj-$(CONFIG_MACH_MSM8930_MTP) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o
 obj-$(CONFIG_MACH_MSM8930_FLUID) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o
