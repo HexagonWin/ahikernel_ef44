@@ -777,6 +777,14 @@ config MACH_MSM8960_LIQUID
 	help
 	  Support for the Qualcomm MSM8960 LIQUID device.
 
+config MACH_MSM8960_MAGNUS
+	depends on ARCH_MSM8960
+	bool "MSM8960 MAGNUS"
+	default n
+	select CUST_PANTECH_H
+	help
+	  Support for the Qualcomm MSM8960 MAGNUS device.
+
 config MACH_MSM8960_OSCAR
 	depends on ARCH_MSM8960
 	bool "MSM8960 OSCAR"
