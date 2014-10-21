@@ -20,8 +20,8 @@
 #include <asm/mach-types.h>
 #include <mach/msm_bus_board.h>
 #include <mach/restart.h>
-#include "devices.h"
-#include "board-8960.h"
+#include "../../devices.h"
+#include "../../board-8960.h"
 
 struct pm8xxx_gpio_init {
 	unsigned			gpio;

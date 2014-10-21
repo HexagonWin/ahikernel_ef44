@@ -25,8 +25,8 @@
 #include <mach/ion.h>
 #include <mach/socinfo.h>
 
-#include "devices.h"
-#include "board-8960.h"
+#include "../../devices.h"
+#include "../../board-8960.h"
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MSM_FB_PRIM_BUF_SIZE \
