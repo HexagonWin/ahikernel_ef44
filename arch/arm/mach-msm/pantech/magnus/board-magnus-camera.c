@@ -16,8 +16,8 @@
 #include <mach/board.h>
 #include <mach/msm_bus_board.h>
 #include <mach/gpiomux.h>
-#include "devices.h"
-#include "board-8960.h"
+#include "../../devices.h"
+#include "../../board-8960.h"
 
 #ifdef CONFIG_MSM_CAMERA
 
