@@ -1,5 +1,5 @@
 #
-# How to Build Generic msm8x60 kernel
+# How to Build Pantech oscar kernel
 #
 
 1. Get Toolchain (arm-eabi-4.6) and install:
@@ -8,8 +8,8 @@
 
 2. Build the Kernel
 
-    - run build_kernel.sh
-        $./build_kernel.sh
+    - run build_oscar_kernel.sh
+        $./build_oscar.sh
 
 2. Output File Location:
 
@@ -18,5 +18,5 @@
       
 3. Clean Kernel object files:
 
-    - run clean_kernel.sh
-        $./clean_kernel.sh
+    - run clean_oscar_kernel.sh
+        $./clean_oscar.sh
