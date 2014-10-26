@@ -4,13 +4,19 @@
 #                           Clean Build Script
 #
 ###############################################################################
-# 2011-10-24 effectivesky : modified
-# 2010-12-29 allydrop     : created
+# 2013-01-14    P12104  :   created
 ###############################################################################
 make O=./obj/KERNEL_OBJ/ clean
-if [ -f ./zImage ]
+
+make O=./obj/KERNEL_OBJ/ clean
+if [ -f ./mkbootimg/oscar/boot.img ]
 then
-    rm ./zImage
+    rm ./mkbootimg/oscar/boot.img
+fi
+
+if [ -f ./mkbootimg/oscar/zImage ]
+then
+    rm ./mkbootimg/oscar/zImage
 fi
 
 if [ -d ./obj/ ]
