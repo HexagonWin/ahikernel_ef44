@@ -56,10 +56,12 @@ typedef enum {
 
 	SI2C_PREVIEW,
 	SI2C_SNAPSHOT,
+#ifdef CONFIG_MACH_MSM8960_OSCAR
 	SI2C_ZSL,
 
 	SI2C_START_STREAM,
     SI2C_STOP_STREAM,
+#endif
 
 	SI2C_AF_TRIGGER,
 
@@ -129,7 +131,9 @@ typedef enum {
 	SI2C_REFLECT_WATER,
 
 	SI2C_SCENE_NORMAL,
+#ifdef CONFIG_MACH_MSM8960_OSCAR
 	SI2C_SCENE_ZSL_NORMAL,
+#endif
 	SI2C_SCENE_ACTION,
 	SI2C_SCENE_AUTO,
 	SI2C_SCENE_BARCODE,
@@ -140,14 +144,18 @@ typedef enum {
 	SI2C_SCENE_LANDSCAPE,
 	SI2C_SCENE_PARTY_INDOOR,
 	SI2C_SCENE_NIGHT,
+#ifdef CONFIG_MACH_MSM8960_OSCAR
 	SI2C_SCENE_ZSL_NIGHT,
+#endif
 	SI2C_SCENE_NIGHT_PORTRAIT,
 	SI2C_SCENE_OFF,
 	SI2C_SCENE_PARTY,
 	SI2C_SCENE_PORTRAIT,
 	SI2C_SCENE_SNOW,
 	SI2C_SCENE_SPORTS,
+#ifdef CONFIG_MACH_MSM8960_OSCAR
 	SI2C_SCENE_ZSL_SPORTS,
+#endif
 	SI2C_SCENE_STEADYPHOTO,
 	SI2C_SCENE_SUNSET,
 	SI2C_SCENE_TEXT,
@@ -181,7 +189,7 @@ typedef struct {
 	const si2c_cmd_t *cmds;	// const command table
 } si2c_const_param_t;
 
-/* PANTECH_CAMERA_TODO, id °¡ ÇÊ¿äÇÑ°¡? */
+/* PANTECH_CAMERA_TODO, id ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ñ°ï¿½? */
 
 typedef struct {
 	si2c_pid_t id;		// parameter id
