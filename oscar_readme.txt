@@ -15,6 +15,7 @@
 
     - kernel : ./obj/KERNEL_OBJ/arch/arm/boot/zImage
     - module : ./kernel/obj/KERNEL_OBJ/drivers/*/*.ko
+    - bootimg : ./mkbootimg/oscar/boot.img
       
 3. Clean Kernel object files:
 
