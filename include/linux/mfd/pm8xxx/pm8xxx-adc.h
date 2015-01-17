@@ -110,6 +110,9 @@ enum pm8xxx_adc_channels {
 #define PM8XXX_AMUX_MPP_6	0x6
 #define PM8XXX_AMUX_MPP_7	0x7
 #define PM8XXX_AMUX_MPP_8	0x8
+#ifdef CONFIG_PANTECH
+#define PM8XXX_AMUX_MPP_9	0x9				// p13106 Touch_ID ADC
+#endif
 
 #define PM8XXX_ADC_DEV_NAME	"pm8xxx-adc"
 

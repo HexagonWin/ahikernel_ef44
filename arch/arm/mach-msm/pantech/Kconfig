@@ -27,6 +27,9 @@ config PANTECH_PMIC
 config PANTECH_PMIC_PWRKEY
 	bool
 
+config PANTECH_PMIC_MAX17058
+	bool
+
 config PANTECH_PMIC_RESET_REASON
 	bool
 
@@ -46,11 +49,41 @@ config PANTECH_NO_EMMC_SDCARD
 config PANTECH_MMC
 	bool
 
+# PANTECH Battery Drivers #
+config PANTECH_BMS
+	bool
+	select PANTECH_BMS_UPDATE
+	select PANTECH_BMS_BATTERY_TYPE
+	select PANTECH_BMS_TEST
+
+config PANTECH_BMS_UPDATE
+	bool
+
+config PANTECH_BMS_BATTERY_TYPE
+	bool
+
+config PANTECH_BMS_TEST
+	bool
+
+config PANTECH_CHARGER
+	bool
+	select PANTECH_CHARGER_OFFLINE
+
+config PANTECH_CHARGER_OFFLINE
+	bool
+
+config PANTECH_CHARGER_WIRELESS
+	bool
+
 config PANTECH_SND
 	bool "PANTECH SOUND CONFIGS"
 	default n
 	help
 	  Support Pantech Sound configs
+
+config PANTECH_GPIO_SLEEP_CONFIG
+	bool "PANTECH GPIO SLEEP CONFIG"
+	default y
 
 endmenu # PANTECH Cust feature section
 
