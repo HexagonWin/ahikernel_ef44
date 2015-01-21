@@ -24,6 +24,10 @@
 
 #undef F_PANTECH_CAMERA_LOG_PRINTK
 
+#if defined(CONFIG_MACH_MSM8960_MAGNUS)
+#define F_PANTECH_CAMERA_LOG_PRINTK
+#endif
+
 #ifdef F_PANTECH_CAMERA_LOG_PRINTK
 #define SKYCDBG(fmt, args...) printk(KERN_INFO "SKYCDBG: " fmt, ##args)
 #define SKYCERR(fmt, args...) printk(KERN_ERR "SKYCERR: " fmt, ##args)

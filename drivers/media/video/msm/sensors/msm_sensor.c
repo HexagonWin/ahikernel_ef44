@@ -337,22 +337,26 @@ int32_t msm_sensor_set_sensor_mode(struct msm_sensor_ctrl_t *s_ctrl,
 
 #ifdef CONFIG_PANTECH_CAMERA
 		pr_err("%s:[F_PANTECH_CAMERA]  s_ctrl->is_csic:%d s_ctrl->sensordata->csi_if:%d\n", __func__, s_ctrl->is_csic, s_ctrl->sensordata->csi_if);
-#endif
 
 		if (s_ctrl->is_csic ||
 			!s_ctrl->sensordata->csi_if) {
-#ifdef CONFIG_PANTECH_CAMERA
 			pr_err("%s:[F_PANTECH_CAMERA]  sensor_csi_setting:%d\n", __func__, __LINE__);
-#endif
 			rc = s_ctrl->func_tbl->sensor_csi_setting(s_ctrl,
 				MSM_SENSOR_UPDATE_PERIODIC, res);
 		} else {
-#ifdef CONFIG_PANTECH_CAMERA
 			pr_err("%s:[F_PANTECH_CAMERA]  sensor_setting:%d\n", __func__, __LINE__);
-#endif
 			rc = s_ctrl->func_tbl->sensor_setting(s_ctrl,
 				MSM_SENSOR_UPDATE_PERIODIC, res);
 		}
+#else
+		if (s_ctrl->is_csic ||
+			!s_ctrl->sensordata->csi_if)
+			rc = s_ctrl->func_tbl->sensor_csi_setting(s_ctrl,
+				MSM_SENSOR_UPDATE_PERIODIC, res);
+		else
+			rc = s_ctrl->func_tbl->sensor_setting(s_ctrl,
+				MSM_SENSOR_UPDATE_PERIODIC, res);
+#endif
 		if (rc < 0)
 			return rc;
 		s_ctrl->curr_res = res;
@@ -734,9 +738,9 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 				rc = s_ctrl->func_tbl->sensor_get_frame_info(s_ctrl, argp, (int8_t *)cdata.frame_info);
 
 				if(copy_to_user((void *)argp,
-						&cdata,
-						sizeof(cdata)))
-						return -EFAULT;
+					&cdata,
+					sizeof(cdata)))
+					return -EFAULT;
 			}
 			break;
 

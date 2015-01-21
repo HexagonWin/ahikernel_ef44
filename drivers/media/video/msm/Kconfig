@@ -155,6 +155,13 @@ config PANTECH_CAMERA_FLASH_TPS61050
 	---help---
 	  LED flash for tps61050
 
+config PANTECH_CAMERA_CE1502
+	bool "Sensor ce1502 (ISP 13M)"
+	depends on MSM_CAMERA && ARCH_MSM8960 && PANTECH_CAMERA
+	default n
+	---help---
+	  Renesas 13M ISP Sensor modules with Autofocus
+
 config OV8820_ACT
 	bool "Actuator OV8820 (BAYER 8M)"
 	depends on MSM_CAMERA && ARCH_MSM8960 && PANTECH_CAMERA

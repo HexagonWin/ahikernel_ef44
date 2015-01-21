@@ -4,6 +4,7 @@ EXTRA_CFLAGS += -Idrivers/media/video/msm/io
 EXTRA_CFLAGS += -Idrivers/media/video/msm/eeprom
 EXTRA_CFLAGS += -Idrivers/media/video/msm/csi
 obj-$(CONFIG_MSM_CAMERA_SENSOR) += msm_sensor.o
+obj-$(CONFIG_PANTECH_CAMERA_CE1502) += ce1502_v4l2.o
 obj-$(CONFIG_PANTECH_CAMERA_OV8820) += ov8820_v4l2.o
 obj-$(CONFIG_PANTECH_CAMERA_YACD5C1SBDBC) += yacd5c1sbdbc_v4l2.o
 obj-$(CONFIG_PANTECH_CAMERA) += sensor_i2c.o sensor_ctrl.o

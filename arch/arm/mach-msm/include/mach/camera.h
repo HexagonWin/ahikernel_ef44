@@ -28,14 +28,22 @@
 #include <mach/iommu_domains.h>
 
 #ifdef CONFIG_PANTECH_CAMERA
-#undef CONFIG_MSM_CAMERA_DEBUG
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
 #undef F_PANTECH_CAMERA_LOG_PRINTK
+#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#define F_PANTECH_CAMERA_LOG_PRINTK
+#endif
+#undef CONFIG_MSM_CAMERA_DEBUG
 #else /* QCOM Original */
 #define CONFIG_MSM_CAMERA_DEBUG
 #endif /* CONFIG_PANTECH_CAMERA */
 
 #ifdef CONFIG_MSM_CAMERA_DEBUG
+#ifdef CONFIG_MACH_MSM8960_MAGNUS
+#define CDBG(fmt, args...)  printk(KERN_INFO "msm_camera: " fmt, ##args)
+#else
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
+#endif
 #else
 #define CDBG(fmt, args...) do { } while (0)
 #endif
