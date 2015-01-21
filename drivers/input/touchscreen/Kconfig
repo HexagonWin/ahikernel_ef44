@@ -946,4 +946,12 @@ config TOUCHSCREEN_FT5X06
          To compile this driver as a module, choose M here: the
          module will be called ft5x06_ts.
 
+config TOUCHSCREEN_QT602240_MSM8960
+	tristate "QT602240 I2C Touchscreen ATMEL QT224E"
+	depends on I2C && CUST_PANTECH_H
+	help
+	  Say Y here if you have a MXT224E based touchscreen.
+	  TMA300 is a multi-touch screen which can report upto 10
+	  touches at a time.
+
 endif
