@@ -26,6 +26,9 @@ config PANTECH_PMIC_BUTTON_POWERONOFF
 config PANTECH_LEDS_PM8XXX
 	bool
 
+config PANTECH_VIBRATOR
+	bool
+
 config PANTECH_SND
 	bool "PANTECH SOUND CONFIGS"
 	default n
