@@ -5,6 +5,13 @@ if CUST_PANTECH_H
 #
 menu "Pantech Cust Feature Section"
 
+config PANTECH
+	bool "PANTECH EXTRA CONFIG"
+	default y
+	help
+	  Use this config to add codes or avoid orphan codes, that's
+	  not labeled with a: CONFIG or FEATURE
+
 config PANTECH_ERR_CRASH_LOGGING
 	bool
 
