@@ -35,6 +35,10 @@
 #include "msm_watchdog.h"
 #include "timer.h"
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+#include "sky_sys_reset.h"
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 #define WDT0_RST	0x38
 #define WDT0_EN		0x40
 #define WDT0_BARK_TIME	0x4C
@@ -52,6 +56,10 @@ void *restart_reason;
 
 int pmic_reset_irq;
 static void __iomem *msm_tmr0_base;
+
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+#define NORMAL_RESET_MAGIC_NUM 0xbaabcddc
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 
 #ifdef CONFIG_MSM_DLOAD_MODE
 static int in_panic;
@@ -107,6 +115,26 @@ static int dload_set(const char *val, struct kernel_param *kp)
 #else
 #define set_dload_mode(x) do {} while (0)
 #endif
+
+#if defined(CONFIG_PANTECH_PMIC_RESET_REASON)
+static void set_force_online_mode(void)
+{
+	if (dload_mode_addr) {
+		__raw_writel(0x34070757, dload_mode_addr);
+		__raw_writel(0x27530757, dload_mode_addr + sizeof(unsigned int));
+		mb();
+	}
+}
+
+static void set_force_offline_mode(void)
+{
+	if (dload_mode_addr) {
+		__raw_writel(0x27530757, dload_mode_addr);
+		__raw_writel(0x34070757, dload_mode_addr + sizeof(unsigned int));
+		mb();
+	}
+}
+#endif /* CONFIG_PANTECH_PMIC_RESET_REASON */
 
 void msm_set_restart_mode(int mode)
 {
@@ -177,6 +205,11 @@ static irqreturn_t resout_irq_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+int sky_reset_reason=SYS_RESET_REASON_UNKNOWN;
+static int sky_backlight_off = 0;
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 void msm_restart(char mode, const char *cmd)
 {
 
@@ -197,6 +230,18 @@ void msm_restart(char mode, const char *cmd)
 		set_dload_mode(0);
 #endif
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+	sky_backlight_off = sky_sys_rst_is_backlight_off();
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
+#if defined(CONFIG_PANTECH_PMIC)
+	if (in_panic == 0)       //chjeon20120213@LS1 chg
+		set_force_online_mode();
+
+	if (mode == 0xC9)
+		set_force_offline_mode();
+#endif /* CONFIG_PANTECH_PMIC */
+
 	printk(KERN_NOTICE "Going down for restart now\n");
 
 	pm8xxx_reset_pwr_off(1);
@@ -210,10 +255,42 @@ void msm_restart(char mode, const char *cmd)
 			unsigned long code;
 			code = simple_strtoul(cmd + 4, NULL, 16) & 0xff;
 			__raw_writel(0x6f656d00 | code, restart_reason);
+#ifdef CONFIG_PANTECH_FS_AUTO_REPAIR
+		} else if (!strncmp(cmd, "autorepair", 10)) {
+			__raw_writel(0x776655EA, restart_reason);
+#endif /* CONFIG_PANTECH_FS_AUTO_REPAIR */
+		} else {
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+			//sky_reset_reason
+			if (in_panic) {
+				if(sky_backlight_off == 0){
+					sky_reset_reason |=
+						SYS_RESET_BACKLIGHT_OFF_FLAG;
+				}
+				writel(sky_reset_reason, restart_reason);
+			} else {
+				__raw_writel(0x77665501, restart_reason);
+			}
+#else /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+			__raw_writel(0x77665501, restart_reason);
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+		}
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+	} else {
+		if (in_panic) {
+			if (sky_backlight_off == 0) {
+				sky_reset_reason |= SYS_RESET_BACKLIGHT_OFF_FLAG; 
+			}
+			writel(sky_reset_reason, restart_reason);
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 	}
+
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+	writel(NORMAL_RESET_MAGIC_NUM, restart_reason+4);
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 
 	__raw_writel(0, msm_tmr0_base + WDT0_EN);
 	if (!(machine_is_msm8x60_fusion() || machine_is_msm8x60_fusn_ffa())) {
@@ -232,9 +309,27 @@ void msm_restart(char mode, const char *cmd)
 	printk(KERN_ERR "Restarting has failed\n");
 }
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING 
+void pantech_set_restart_reason(void)
+{
+	sky_backlight_off = sky_sys_rst_is_backlight_off();
+	//sky_reset_reason
+	if (in_panic) {
+		if(sky_backlight_off == 0) {
+			sky_reset_reason |= SYS_RESET_BACKLIGHT_OFF_FLAG;
+		}
+		writel(sky_reset_reason, restart_reason);
+	}
+}
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 static int __init msm_pmic_restart_init(void)
 {
 	int rc;
+
+#if defined(CONFIG_PANTECH_ERR_CRASH_LOGGING)
+	__raw_writel(SYS_RESET_REASON_ABNORMAL, restart_reason);
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 
 	if (pmic_reset_irq != 0) {
 		rc = request_any_context_irq(pmic_reset_irq,

@@ -311,6 +311,13 @@ void log_buf_clear(void)
 	logged_chars = 0;
 }
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+void* get_log_buf_addr(void)
+{
+	return (void*)log_buf;
+}
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 /*
  * Copy a range of characters from the log buffer.
  */

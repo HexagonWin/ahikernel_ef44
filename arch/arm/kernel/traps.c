@@ -37,6 +37,10 @@
 
 #include "signal.h"
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+extern void pantech_machine_crash_shutdown(struct pt_regs *regs);
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 static const char *handler[]= { "prefetch abort", "data abort", "address exception", "interrupt" };
 
 void *vectors_page;
@@ -249,6 +253,13 @@ static int __die(const char *str, int err, struct thread_info *thread, struct pt
 
 	print_modules();
 	__show_regs(regs);
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+	__save_regs_and_mmu(regs);
+	if (regs) {
+		printk(KERN_DEBUG "CPU %u has crashed in die\n", smp_processor_id());
+		pantech_machine_crash_shutdown(regs);
+	}
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 	printk(KERN_EMERG "Process %.*s (pid: %d, stack limit = 0x%p)\n",
 		TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), thread + 1);
 
@@ -292,10 +303,17 @@ void die(const char *str, struct pt_regs *regs, int err)
 	raw_spin_unlock_irq(&die_lock);
 	oops_exit();
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+	if (in_interrupt())
+		panic("Fatal exception in interrupt : %s",str);
+	if (panic_on_oops)
+		panic("Fatal exception : %s",str);
+#else
 	if (in_interrupt())
 		panic("Fatal exception in interrupt");
 	if (panic_on_oops)
 		panic("Fatal exception");
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
 	if (ret != NOTIFY_STOP)
 		do_exit(SIGSEGV);
 }

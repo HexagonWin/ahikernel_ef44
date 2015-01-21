@@ -13,6 +13,16 @@
  *
  */
 
+#ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
+#include <mach/hardware.h>
+void arch_idle(void);
+
+static inline void arch_reset(char mode, const char *cmd)
+{
+	for (;;) ;  /* depends on IPC w/ other core */
+}
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 /* low level hardware reset hook -- for example, hitting the
  * PSHOLD line on the PMIC to hard reset the system
  */

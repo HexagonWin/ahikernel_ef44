@@ -462,6 +462,11 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	mutex_lock(&reboot_mutex);
 	switch (cmd) {
 	case LINUX_REBOOT_CMD_RESTART:
+#if defined(PANTECH_ERR_CRASH_LOGGING ) || defined(CONFIG_PANTECH_EXT4_RO_REMOUNT_ON_EMERGENCY_RESET)
+		printk("emergency_sync() and emergency_remount() - LINUX_REBOOT_CMD_RESTART.\n");
+		emergency_sync();
+		emergency_remount();
+#endif
 		kernel_restart(NULL);
 		break;
 
@@ -474,11 +479,21 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 		break;
 
 	case LINUX_REBOOT_CMD_HALT:
+#if defined(PANTECH_ERR_CRASH_LOGGING ) || defined(CONFIG_PANTECH_EXT4_RO_REMOUNT_ON_EMERGENCY_RESET)
+		printk("emergency_sync() and emergency_remount() - LINUX_REBOOT_CMD_HALT.\n");
+		emergency_sync();
+		emergency_remount();
+#endif
 		kernel_halt();
 		do_exit(0);
 		panic("cannot halt");
 
 	case LINUX_REBOOT_CMD_POWER_OFF:
+#if defined(PANTECH_ERR_CRASH_LOGGING ) || defined(CONFIG_PANTECH_EXT4_RO_REMOUNT_ON_EMERGENCY_RESET)
+		printk("emergency_sync() and emergency_remount() - LINUX_REBOOT_CMD_POWER_OFF.\n");
+		emergency_sync();
+		emergency_remount();
+#endif
 		kernel_power_off();
 		do_exit(0);
 		break;
@@ -489,6 +504,11 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 			break;
 		}
 		buffer[sizeof(buffer) - 1] = '\0';
+#if defined(PANTECH_ERR_CRASH_LOGGING ) || defined(CONFIG_PANTECH_EXT4_RO_REMOUNT_ON_EMERGENCY_RESET)
+		printk("emergency_sync() and emergency_remount() - LINUX_REBOOT_CMD_RESTART2.\n");
+		emergency_sync();
+		emergency_remount();
+#endif
 
 		kernel_restart(buffer);
 		break;

@@ -20,6 +20,9 @@
 #include <mach/proc_comm.h>
 
 #include "smd_private.h"
+#if defined(CONFIG_PANTECH_ERR_CRASH_LOGGING)
+#include "sky_sys_reset.h"
+#endif
 
 #define DEBUG
 /* #undef DEBUG */

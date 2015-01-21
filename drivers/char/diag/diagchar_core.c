@@ -1215,6 +1215,14 @@ int mask_request_validate(unsigned char mask_buf[])
 			if ((ss_cmd == 0) || (ss_cmd == 0x1))
 				return 1;
 			break;
+#ifdef CONFIG_CUST_PANTECH_H
+		/* 20120701 hbwoo, Enable f3trace commands */
+		case 0x25:
+			return 1;
+		/* FEATURE_SKY_DMLOGGING_DPL */
+		case 0x2a:
+			return 1;
+#endif /* CONFIG_CUST_PANTECH_H */
 		default:
 			return 0;
 			break;

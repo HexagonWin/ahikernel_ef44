@@ -22,6 +22,10 @@
 
 #include "smd_private.h"
 
+#if defined(CONFIG_PANTECH_ERR_CRASH_LOGGING)
+#include "sky_sys_reset.h"
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 #define BUILD_ID_LENGTH 32
 
 enum {
@@ -722,6 +726,16 @@ static void * __init setup_dummy_socinfo(void)
 
 int __init socinfo_init(void)
 {
+#if defined(CONFIG_PANTECH_PMIC)
+	oem_pm_smem_vendor1_data_type *smem_vendor1_data;
+	smem_vendor1_data = smem_alloc(SMEM_ID_VENDOR1, sizeof(oem_pm_smem_vendor1_data_type)); 
+#endif /* CONFIG_PANTECH_PMIC */
+
+#if defined(CONFIG_PANTECH_ERR_CRASH_LOGGING)
+	//chjeon20111027@LS1 add for silent boot mode
+	sky_sys_rst_set_silent_boot_info();
+#endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+
 	socinfo = smem_alloc(SMEM_HW_SW_BUILD_ID, sizeof(struct socinfo_v7));
 
 	if (!socinfo)
@@ -836,6 +850,17 @@ int __init socinfo_init(void)
 		pr_err("%s: Unknown format found\n", __func__);
 		break;
 	}
+
+#if defined(CONFIG_PANTECH_PMIC)
+	pr_info("smem_vendor1_data->power_on_reason : 0x%x\n", smem_vendor1_data->power_on_reason);
+	pr_info("smem_vendor1_data->factory_cable_adc : %d\n", smem_vendor1_data->factory_cable_adc);
+	pr_info("smem_vendor1_data->battery_id_adc : %d\n", smem_vendor1_data->battery_id_adc);
+	pr_info("smem_vendor1_data->hw_rev_adc : %d\n", smem_vendor1_data->hw_rev_adc);
+	pr_info("smem_vendor1_data->power_on_mode : %d\n", smem_vendor1_data->power_on_mode);
+	pr_info("smem_vendor1_data->silent_boot_mode : %d\n", smem_vendor1_data->silent_boot_mode);
+	pr_info("smem_vendor1_data->hw_rev : %d\n", smem_vendor1_data->hw_rev);
+	pr_info("smem_vendor1_data->battery_id : %d\n", smem_vendor1_data->battery_id);
+#endif /* CONFIG_PANTECH_PMIC */
 
 	return 0;
 }
