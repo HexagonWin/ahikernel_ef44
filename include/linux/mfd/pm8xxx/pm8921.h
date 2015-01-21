@@ -35,6 +35,9 @@
 #include <linux/leds-pm8xxx.h>
 #include <linux/mfd/pm8xxx/vibrator.h>
 #include <linux/mfd/pm8xxx/ccadc.h>
+#if defined(CONFIG_PANTECH_PMIC_BUTTON_POWERONOFF)
+#include <linux/input/pmic8xxx-pwrkey-emulation.h>
+#endif
 
 #define PM8921_NR_IRQS		256
 
@@ -142,6 +145,9 @@ struct pm8921_platform_data {
 	struct pm8xxx_vibrator_platform_data	*vibrator_pdata;
 	struct pm8xxx_ccadc_platform_data	*ccadc_pdata;
 	struct pm8xxx_pwm_platform_data		*pwm_pdata;
+#if defined(CONFIG_PANTECH_PMIC_BUTTON_POWERONOFF)
+	struct pm8xxx_pwrkey_emulation_platform_data *pwrkey_emulation_pdata;
+#endif
 };
 
 #endif

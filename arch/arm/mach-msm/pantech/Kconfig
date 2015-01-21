@@ -20,6 +20,9 @@ config PANTECH_PMIC_PWRKEY
 config PANTECH_PMIC_RESET_REASON
 	bool
 
+config PANTECH_PMIC_BUTTON_POWERONOFF
+	bool
+
 endmenu # PANTECH Cust feature section
 
 endif # CUST_PANTECH_H

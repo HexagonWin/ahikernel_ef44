@@ -227,6 +227,13 @@ static struct mfd_cell pwrkey_cell __devinitdata = {
 	.resources	= resources_pwrkey,
 };
 
+#if defined(CONFIG_PANTECH_PMIC_BUTTON_POWERONOFF)
+static struct mfd_cell pwrkey_emulation_cell __devinitdata = {
+	.name		= PM8XXX_PWRKEY_EMULATION_DEV_NAME,
+	.id		= -1,
+};
+#endif
+
 static const struct resource resources_keypad[] = {
 	SINGLE_IRQ_RESOURCE(NULL, PM8921_KEYPAD_IRQ),
 	SINGLE_IRQ_RESOURCE(NULL, PM8921_KEYSTUCK_IRQ),
@@ -722,6 +729,21 @@ pm8921_add_subdevices(const struct pm8921_platform_data *pdata,
 			goto bail;
 		}
 	}
+
+#if defined(CONFIG_PANTECH_PMIC_BUTTON_POWERONOFF)
+	if (pdata->pwrkey_emulation_pdata) {
+		pwrkey_emulation_cell.platform_data = pdata->pwrkey_emulation_pdata;
+		pwrkey_emulation_cell.pdata_size =
+			sizeof(struct pm8xxx_pwrkey_emulation_platform_data);
+
+		ret = mfd_add_devices(pmic->dev, 0, &pwrkey_emulation_cell, 1, NULL,
+					irq_base);
+		if (ret) {
+			pr_err("Failed to add keypad emulation subdevice ret=%d\n", ret);
+			goto bail;
+		}
+	}
+#endif
 
 	if (pdata->num_regulators > 0 && pdata->regulator_pdatas) {
 		ret = pm8921_add_regulators(pdata, pmic, irq_base);
