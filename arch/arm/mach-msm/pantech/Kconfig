@@ -23,6 +23,12 @@ config PANTECH_PMIC_RESET_REASON
 config PANTECH_PMIC_BUTTON_POWERONOFF
 	bool
 
+config PANTECH_SND
+	bool "PANTECH SOUND CONFIGS"
+	default n
+	help
+	  Support Pantech Sound configs
+
 endmenu # PANTECH Cust feature section
 
 endif # CUST_PANTECH_H

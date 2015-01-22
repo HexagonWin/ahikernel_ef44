@@ -59,8 +59,20 @@
 #define TABLA_MBHC_DEF_BUTTONS 8
 #define TABLA_MBHC_DEF_RLOADS 5
 
+// Configure headset detect MSM GPIO and  HW revision for each models...kdkim//
+//-----------------------------------------------------------------//
+// OSCAR 		MSM GPIO 35			HW_REVISION   4 
+//-----------------------------------------------------------------//
+
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
+#if defined(T_OSCAR) 
+#define JACK_DETECT_GPIO 35
+#define JACK_DETECT_INT MSM_GPIO_TO_INT(JACK_DETECT_GPIO)
+#endif /* T_OSCAR */
+#else /* QCOM original */
 #define JACK_DETECT_GPIO 38
 #define JACK_DETECT_INT PM8921_GPIO_IRQ(PM8921_IRQ_BASE, JACK_DETECT_GPIO)
+#endif /* CONFIG_PANTECH_SND */
 #define JACK_US_EURO_SEL_GPIO 35
 
 static u32 top_spk_pamp_gpio  = PM8921_GPIO_PM_TO_SYS(18);
@@ -96,6 +108,26 @@ static int msm8960_enable_codec_ext_clk(struct snd_soc_codec *codec, int enable,
 					bool dapm);
 static bool msm8960_swap_gnd_mic(struct snd_soc_codec *codec);
 
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
+extern int get_hw_revision(void);
+bool headset_gpio_config = true;
+#endif
+
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
+static struct tabla_mbhc_config mbhc_cfg = {
+	.headset_jack = &hs_jack,
+	.button_jack = &button_jack,
+	.read_fw_bin = false,
+	.calibration = NULL,
+	.micbias = TABLA_MICBIAS2,
+	.mclk_cb_fn = msm8960_enable_codec_ext_clk,
+	.mclk_rate = TABLA_EXT_CLK_RATE,
+	.gpio = JACK_DETECT_GPIO,
+	.gpio_irq = JACK_DETECT_INT,
+	.gpio_level_insert = 1,
+	.swap_gnd_mic = NULL,
+};
+#else // Qualcomm original(PM GPIO)
 static struct tabla_mbhc_config mbhc_cfg = {
 	.headset_jack = &hs_jack,
 	.button_jack = &button_jack,
@@ -109,6 +141,7 @@ static struct tabla_mbhc_config mbhc_cfg = {
 	.gpio_level_insert = 1,
 	.swap_gnd_mic = NULL,
 };
+#endif /* CONFIG_PANTECH_SND */
 
 static u32 us_euro_sel_gpio = PM8921_GPIO_PM_TO_SYS(JACK_US_EURO_SEL_GPIO);
 
@@ -478,12 +511,22 @@ static const struct snd_soc_dapm_route common_audio_map[] = {
 	 * routing entries below are based on bias arrangement
 	 * on FLUID.
 	 */
+
+#ifdef CONFIG_PANTECH_SND
+	{"AMIC3", NULL, "MIC BIAS3 External"},
+	{"MIC BIAS3 External", NULL, "Handset Mic"},
+#if defined(T_OSCAR) // 20120126 By elecjang for Fluence
+	{"AMIC4", NULL, "MIC BIAS4 External"},
+	{"MIC BIAS4 External", NULL, "Handset Mic"},	
+#endif /* T_OSCAR */
+#else /* QCOM original */
 	{"AMIC3", NULL, "MIC BIAS3 Internal1"},
 	{"MIC BIAS3 Internal1", NULL, "MIC BIAS2 External"},
 	{"MIC BIAS2 External", NULL, "ANCRight Headset Mic"},
 	{"AMIC4", NULL, "MIC BIAS1 Internal2"},
 	{"MIC BIAS1 Internal2", NULL, "MIC BIAS2 External"},
 	{"MIC BIAS2 External", NULL, "ANCLeft Headset Mic"},
+#endif /* CONFIG_PANTECH_SND */
 
 	{"HEADPHONE", NULL, "LDO_H"},
 
@@ -542,11 +585,17 @@ static const struct snd_soc_dapm_route common_audio_map[] = {
 static const char *spk_function[] = {"Off", "On"};
 static const char *slim0_rx_ch_text[] = {"One", "Two"};
 static const char *slim0_tx_ch_text[] = {"One", "Two", "Three", "Four"};
+#ifdef CONFIG_PANTECH_SND // [CHD] for bootsound headset path info
+static const char *headset_status_function[] = {"Get"};
+#endif
 
 static const struct soc_enum msm8960_enum[] = {
 	SOC_ENUM_SINGLE_EXT(2, spk_function),
 	SOC_ENUM_SINGLE_EXT(2, slim0_rx_ch_text),
 	SOC_ENUM_SINGLE_EXT(4, slim0_tx_ch_text),
+#ifdef CONFIG_PANTECH_SND // [CHD] for bootsound headset path info
+	SOC_ENUM_SINGLE_EXT(1, headset_status_function),
+#endif
 };
 
 static const char *btsco_rate_text[] = {"8000", "16000"};
@@ -653,6 +702,21 @@ static int msm8960_auxpcm_rate_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+#ifdef CONFIG_PANTECH_SND // [CHD] for bootsound headset path info
+static int headset_status_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = wcd9310_headsetJackStatusGet();
+	return 0;
+}
+
+static int headset_status_set(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
+{
+	pr_info("%s() %s\n", __func__, "This behaviour is not implemented");
+	return 0;
+}
+#endif
+
+
 static const struct snd_kcontrol_new tabla_msm8960_controls[] = {
 	SOC_ENUM_EXT("Speaker Function", msm8960_enum[0], msm8960_get_spk,
 		msm8960_set_spk),
@@ -660,6 +724,10 @@ static const struct snd_kcontrol_new tabla_msm8960_controls[] = {
 		msm8960_slim_0_rx_ch_get, msm8960_slim_0_rx_ch_put),
 	SOC_ENUM_EXT("SLIM_0_TX Channels", msm8960_enum[2],
 		msm8960_slim_0_tx_ch_get, msm8960_slim_0_tx_ch_put),
+#ifdef CONFIG_PANTECH_SND // [CHD] for bootsound headset path info
+	SOC_ENUM_EXT("Headset Status", msm8960_enum[3], headset_status_get,
+		headset_status_set),
+#endif
 	SOC_ENUM_EXT("Internal BTSCO SampleRate", msm8960_btsco_enum[0],
 		msm8960_btsco_rate_get, msm8960_btsco_rate_put),
 	SOC_ENUM_EXT("AUX PCM SampleRate", msm8960_auxpcm_enum[0],
@@ -696,8 +764,13 @@ static void *def_tabla_mbhc_cal(void)
 	S(t_ins_retry, 200);
 #undef S
 #define S(X, Y) ((TABLA_MBHC_CAL_PLUG_TYPE_PTR(tabla_cal)->X) = (Y))
+#ifdef CONFIG_PANTECH_SND
+	S(v_no_mic, 400); // Qualcomm Latest Patch 30 -> 400
+	S(v_hs_max, 2900); // H/W Tuning Value for 2.7V Mic bias 2400 -> 2550 -> 2900(for iPhone5 bundle)
+#else /* QCOM Original */
 	S(v_no_mic, 30);
 	S(v_hs_max, 2400);
+#endif /* CONFIG_PANTECH_SND */
 #undef S
 #define S(X, Y) ((TABLA_MBHC_CAL_BTN_DET_PTR(tabla_cal)->X) = (Y))
 	S(c[0], 62);
@@ -714,6 +787,24 @@ static void *def_tabla_mbhc_cal(void)
 	btn_cfg = TABLA_MBHC_CAL_BTN_DET_PTR(tabla_cal);
 	btn_low = tabla_mbhc_cal_btn_det_mp(btn_cfg, TABLA_BTN_DET_V_BTN_LOW);
 	btn_high = tabla_mbhc_cal_btn_det_mp(btn_cfg, TABLA_BTN_DET_V_BTN_HIGH);
+#ifdef CONFIG_PANTECH_SND
+	btn_low[0] = -50;
+	btn_high[0] = 180; // Q.C requirement
+	btn_low[1] = 200;
+	btn_high[1] = 250;
+	btn_low[2] = 200;
+	btn_high[2] = 250;
+	btn_low[3] = 200;
+	btn_high[3] = 250;
+	btn_low[4] = 200;
+	btn_high[4] = 250;
+	btn_low[5] = 200;
+	btn_high[5] = 250;
+	btn_low[6] = 200;
+	btn_high[6] = 250;
+	btn_low[7] = 200;
+	btn_high[7] = 250;
+#else /* QCOM original */
 	btn_low[0] = -50;
 	btn_high[0] = 10;
 	btn_low[1] = 11;
@@ -730,6 +821,7 @@ static void *def_tabla_mbhc_cal(void)
 	btn_high[6] = 244;
 	btn_low[7] = 245;
 	btn_high[7] = 330;
+#endif /* CONFIG_PANTECH_SND */
 	n_ready = tabla_mbhc_cal_btn_det_mp(btn_cfg, TABLA_BTN_DET_N_READY);
 	n_ready[0] = 80;
 	n_ready[1] = 68;
@@ -879,9 +971,14 @@ end:
 static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 {
 	int err;
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
+	int ret = 0; 
+	int hw_rev;
+#endif
 	struct snd_soc_codec *codec = rtd->codec;
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+#if !defined(CONFIG_PANTECH_SND) // Qualcomm original...kdkim for MBHC with GPIO(MSM GPIO)    
 	struct pm_gpio jack_gpio_cfg = {
 		.direction = PM_GPIO_DIR_IN,
 		.pull = PM_GPIO_PULL_UP_1P5,
@@ -889,6 +986,7 @@ static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 		.vin_sel = 2,
 		.inv_int_pol = 0,
 	};
+#endif /* CONFIG_PANTECH_SND */
 
 	pr_debug("%s(), dev_name%s\n", __func__, dev_name(cpu_dai->dev));
 
@@ -931,6 +1029,38 @@ static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	if (machine_is_msm8960_cdp())
 		mbhc_cfg.swap_gnd_mic = msm8960_swap_gnd_mic;
 
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC With GPIO(MSM GPIO)
+	hw_rev = get_hw_revision();
+	pr_debug("########### [SND] msm8960 hw_rev : %d\n", hw_rev); 
+#if defined(T_OSCAR)
+	if (hw_rev < 4) {
+		mbhc_cfg.gpio = 0;
+		mbhc_cfg.gpio_irq = 0;
+	}
+#endif
+#endif /* CONFIG_PANTECH_SND */
+
+#ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
+	if (mbhc_cfg.gpio) {
+		ret = gpio_request(JACK_DETECT_GPIO, "headset_detect");
+		if (ret) {
+			pr_err("%s: gpio_request failed %d\n", __func__,
+			       ret);
+			headset_gpio_config = false;
+			gpio_free(JACK_DETECT_GPIO);
+		}
+		
+		ret = gpio_direction_input(mbhc_cfg.gpio);
+		if (ret) {
+			pr_err("%s: gpio_direction_input failed %d\n", __func__,
+			       ret);
+			headset_gpio_config = false;
+			gpio_free(JACK_DETECT_GPIO);
+		}
+		
+		mbhc_cfg.gpio_irq = gpio_to_irq(mbhc_cfg.gpio);
+	 }
+#else /* QCOM Original */
 	if (hs_detect_use_gpio) {
 		mbhc_cfg.gpio = PM8921_GPIO_PM_TO_SYS(JACK_DETECT_GPIO);
 		mbhc_cfg.gpio_irq = JACK_DETECT_INT;
@@ -944,6 +1074,7 @@ static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 			return err;
 		}
 	}
+#endif /* CONFIG_PANTECH_SND */
 
 	mbhc_cfg.read_fw_bin = hs_detect_use_firmware;
 

@@ -34,6 +34,10 @@
 #define VOIP_MAX_VOC_PKT_SIZE 640
 #define VOIP_MIN_VOC_PKT_SIZE 320
 
+#ifdef CONFIG_PANTECH_SND
+#define USE_SKY_DIRECT_ADSP //kkc - add for SKY MVS dummy driver
+#endif
+
 /* Length of the DSP frame info header added to the voc packet. */
 #define DSP_FRAME_HDR_LEN 1
 
@@ -144,8 +148,15 @@ static int msm_voip_mode_rate_config_put(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol);
 static int msm_voip_mode_rate_config_get(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol);
+#ifdef USE_SKY_DIRECT_ADSP
+/*static*/ struct voip_drv_info voip_info;
+EXPORT_SYMBOL(voip_info);
 
+bool bUseSKYDirectADSP = false;//kkc 2012.08.15 - change variable name "bUseMVSVoip" to "bUseSKYDirectADSP"
+EXPORT_SYMBOL(bUseSKYDirectADSP);
+#else
 static struct voip_drv_info voip_info;
+#endif
 
 static struct snd_pcm_hardware msm_pcm_hardware = {
 	.info =                 (SNDRV_PCM_INFO_MMAP |
@@ -324,7 +335,9 @@ static void voip_process_ul_pkt(uint8_t *voc_pkt,
 		snd_pcm_period_elapsed(prtd->capture_substream);
 	} else {
 		spin_unlock_irqrestore(&prtd->dsp_ul_lock, dsp_flags);
+#if !defined(CONFIG_PANTECH_SND) // LS1@SND : reset occurs due to too many log during the VT 
 		pr_err("UL data dropped\n");
+#endif
 	}
 
 	wake_up(&prtd->out_wait);
@@ -401,7 +414,9 @@ static void voip_process_dl_pkt(uint8_t *voc_pkt,
 	} else {
 		*pkt_len = 0;
 		spin_unlock_irqrestore(&prtd->dsp_lock, dsp_flags);
+#if !defined(CONFIG_PANTECH_SND) // LS1@SND : reset occurs due to too many log during the VT 
 		pr_err("DL data not available\n");
+#endif
 	}
 	wake_up(&prtd->in_wait);
 }
@@ -508,8 +523,13 @@ err:
 	return ret;
 }
 
+#ifdef USE_SKY_DIRECT_ADSP
+/*static*/ int msm_pcm_playback_copy(struct snd_pcm_substream *substream, int a,
+	snd_pcm_uframes_t hwoff, void __user *buf, snd_pcm_uframes_t frames)
+#else
 static int msm_pcm_playback_copy(struct snd_pcm_substream *substream, int a,
 	snd_pcm_uframes_t hwoff, void __user *buf, snd_pcm_uframes_t frames)
+#endif
 {
 	int ret = 0;
 	struct voip_buf_node *buf_node = NULL;
@@ -520,10 +540,17 @@ static int msm_pcm_playback_copy(struct snd_pcm_substream *substream, int a,
 	int count = frames_to_bytes(runtime, frames);
 	pr_debug("%s: count = %d, frames=%d\n", __func__, count, (int)frames);
 
+#ifdef USE_SKY_DIRECT_ADSP
+	ret = wait_event_interruptible_timeout(prtd->in_wait,
+				(!list_empty(&prtd->free_in_queue) ||
+				prtd->state == VOIP_STOPPED),
+				(1 * HZ)/50);
+#else
 	ret = wait_event_interruptible_timeout(prtd->in_wait,
 				(!list_empty(&prtd->free_in_queue) ||
 				prtd->state == VOIP_STOPPED),
 				1 * HZ);
+#endif
 	if (ret > 0) {
 		if (count <= VOIP_MAX_VOC_PKT_SIZE) {
 			spin_lock_irqsave(&prtd->dsp_lock, dsp_flags);
@@ -557,9 +584,17 @@ static int msm_pcm_playback_copy(struct snd_pcm_substream *substream, int a,
 
 	return  ret;
 }
+
+#ifdef USE_SKY_DIRECT_ADSP
+EXPORT_SYMBOL(msm_pcm_playback_copy);
+/*static*/ int msm_pcm_capture_copy(struct snd_pcm_substream *substream,
+		int channel, snd_pcm_uframes_t hwoff, void __user *buf,
+						snd_pcm_uframes_t frames)
+#else
 static int msm_pcm_capture_copy(struct snd_pcm_substream *substream,
 		int channel, snd_pcm_uframes_t hwoff, void __user *buf,
 						snd_pcm_uframes_t frames)
+#endif
 {
 	int ret = 0;
 	int count = 0;
@@ -572,10 +607,17 @@ static int msm_pcm_capture_copy(struct snd_pcm_substream *substream,
 
 	pr_debug("%s: count = %d\n", __func__, count);
 
+#ifdef USE_SKY_DIRECT_ADSP
+	ret = wait_event_interruptible_timeout(prtd->out_wait,
+				(!list_empty(&prtd->out_queue) ||
+				prtd->state == VOIP_STOPPED),
+				(1 * HZ)/50);
+#else
 	ret = wait_event_interruptible_timeout(prtd->out_wait,
 				(!list_empty(&prtd->out_queue) ||
 				prtd->state == VOIP_STOPPED),
 				1 * HZ);
+#endif
 
 	if (ret > 0) {
 
@@ -611,7 +653,9 @@ static int msm_pcm_capture_copy(struct snd_pcm_substream *substream,
 
 
 	} else if (ret == 0) {
+#if !defined(CONFIG_PANTECH_SND) // LS1@SND : reset occurs due to too many log during the VT 	
 		pr_err("%s: No UL data available\n", __func__);
+#endif		
 		ret = -ETIMEDOUT;
 	} else {
 		pr_err("%s: Read was interrupted\n", __func__);
@@ -619,15 +663,29 @@ static int msm_pcm_capture_copy(struct snd_pcm_substream *substream,
 	}
 	return ret;
 }
+
+#ifdef USE_SKY_DIRECT_ADSP
+EXPORT_SYMBOL(msm_pcm_capture_copy);
+#endif
+
 static int msm_pcm_copy(struct snd_pcm_substream *substream, int a,
 	 snd_pcm_uframes_t hwoff, void __user *buf, snd_pcm_uframes_t frames)
 {
 	int ret = 0;
 
+#ifdef USE_SKY_DIRECT_ADSP
+	if (!bUseSKYDirectADSP) {
+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			ret = msm_pcm_playback_copy(substream, a, hwoff, buf, frames);
+		else if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
+			ret = msm_pcm_capture_copy(substream, a, hwoff, buf, frames);
+	}
+#else
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		ret = msm_pcm_playback_copy(substream, a, hwoff, buf, frames);
 	else if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
 		ret = msm_pcm_capture_copy(substream, a, hwoff, buf, frames);
+#endif
 
 	return ret;
 }
@@ -643,6 +701,9 @@ static int msm_pcm_close(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime;
 	struct voip_drv_info *prtd;
 	unsigned long dsp_flags;
+#ifdef USE_SKY_DIRECT_ADSP//kkc 2012.08.15 - change the flag disable timing for closing process
+	bUseSKYDirectADSP = false;
+#endif
 
 	if (substream == NULL) {
 		pr_err("substream is NULL\n");
