@@ -30,20 +30,23 @@
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MSM_FB_PRIM_BUF_SIZE \
-		(roundup((roundup(1920, 32) * roundup(1200, 32) * 4), 4096) * 3)
+		(roundup((roundup(960, 32) * roundup(544, 32) * 4), 4096) * 3)
 			/* 4 bpp x 3 pages */
 #else
 #define MSM_FB_PRIM_BUF_SIZE \
-		(roundup((roundup(1920, 32) * roundup(1200, 32) * 4), 4096) * 2)
+		(roundup((roundup(960, 32) * roundup(544, 32) * 4), 4096) * 2)
 			/* 4 bpp x 2 pages */
 #endif
 
 /* Note: must be multiple of 4096 */
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+#else
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE, 4096)
+#endif
 
 #ifdef CONFIG_FB_MSM_OVERLAY0_WRITEBACK
 #define MSM_FB_OVERLAY0_WRITEBACK_SIZE \
-		roundup((roundup(1920, 32) * roundup(1200, 32) * 3 * 2), 4096)
+		roundup((roundup(960, 32) * roundup(544, 32) * 3 * 2), 4096)
 #else
 #define MSM_FB_OVERLAY0_WRITEBACK_SIZE (0)
 #endif  /* CONFIG_FB_MSM_OVERLAY0_WRITEBACK */
@@ -54,6 +57,12 @@
 #else
 #define MSM_FB_OVERLAY1_WRITEBACK_SIZE (0)
 #endif  /* CONFIG_FB_MSM_OVERLAY1_WRITEBACK */
+
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
+#define MSM_FB_EXT_BUF_SIZE \
+		(roundup((1920 * 1088 * 2), 4096) * 1) /* 2 bpp x 1 page */
+#define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_EXT_BUF_SIZE, 4096)
+#endif
 
 #define MDP_VSYNC_GPIO 0
 
@@ -226,7 +235,37 @@ static void mipi_dsi_panel_pwm_cfg(void)
 	}
 }
 
+#if !defined (CONFIG_MACH_MSM8960_OSCAR)
 static bool dsi_power_on;
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
+
+#if defined (CONFIG_MACH_MSM8960_OSCAR)
+int rc, dma_ch;
+
+#define LCD_PANEL_DETECT 7
+static struct gpiomux_setting gpio_generals[1] = {
+    {
+        .func = GPIOMUX_FUNC_GPIO, /*lcd detect*/
+        .drv = GPIOMUX_DRV_2MA,
+        .pull = GPIOMUX_PULL_UP,
+        .dir = GPIOMUX_IN,
+    },
+};
+static struct msm_gpiomux_config msm8960_lcd_detect_configs[] = {
+    {
+        .gpio = 7,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &gpio_generals[0],
+            [GPIOMUX_SUSPENDED] = &gpio_generals[0],
+        },
+    },
+};
+
+static bool dsi_power_on = false;
+static bool ldo_access_flag = true;
+int gpio43; /* 43:LCD Reset */
+int gpio16, gpio24; /* 16 : LCD backlight */
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 
 /**
  * LiQUID panel on/off
@@ -346,6 +385,162 @@ static int mipi_dsi_liquid_panel_power(int on)
 	return 0;
 }
 
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+//static int  mipi_dsi_cdp_panel_power_Oscar(void)
+int mipi_dsi_cdp_panel_power_Oscar(int on)
+{
+    static struct regulator *reg_l8, *reg_l29, *reg_l2;
+    int rc;
+    static int mipi_dsi_cdp_gpio_configured;
+
+    struct pm_gpio gpio43_param = {
+        .direction = PM_GPIO_DIR_OUT,
+        .output_buffer = PM_GPIO_OUT_BUF_CMOS,
+        .output_value = 1,
+        .pull = PM_GPIO_PULL_DN,
+        .vin_sel = PM_GPIO_VIN_S4,
+        .out_strength = PM_GPIO_STRENGTH_HIGH,
+        .function = PM_GPIO_FUNC_NORMAL,
+        .inv_int_pol = 0,
+        .disable_pin = 0,
+    };
+
+    if (mipi_dsi_cdp_gpio_configured == 0) {
+        rc = pm8xxx_gpio_config(PM8921_GPIO_PM_TO_SYS(43),
+                    &gpio43_param);
+        if (rc != 0)
+            pr_err("%s: gpio43 failed\n", __func__);
+            mipi_dsi_cdp_gpio_configured++;
+    }
+
+    if (!dsi_power_on) {
+
+        reg_l8 = regulator_get(&msm_mipi_dsi1_device.dev,
+                "dsi_vdc");
+        if (IS_ERR(reg_l8)) {
+            pr_err("could not get 8921_l8, rc = %ld\n",
+                PTR_ERR(reg_l8));
+            return -ENODEV;
+        }
+        reg_l29 = regulator_get(&msm_mipi_dsi1_device.dev,
+                "dsi_vddio");
+        if (IS_ERR(reg_l29)) {
+            pr_err("could not get 8921_l29, rc = %ld\n",
+                PTR_ERR(reg_l29));
+            return -ENODEV;
+        }
+        reg_l2 = regulator_get(&msm_mipi_dsi1_device.dev,
+                "dsi_vdda");
+        if (IS_ERR(reg_l2)) {
+            pr_err("could not get 8921_l2, rc = %ld\n",
+                PTR_ERR(reg_l2));
+            return -ENODEV;
+        }
+        rc = regulator_set_voltage(reg_l8, 3000000, 3000000);
+        if (rc) {
+            pr_err("set_voltage l8 failed, rc=%d\n", rc);
+            return -EINVAL;
+        }
+        rc = regulator_set_voltage(reg_l29, 1800000, 1800000);
+        if (rc) {
+            pr_err("set_voltage l29 failed, rc=%d\n", rc);
+            return -EINVAL;
+        }
+        rc = regulator_set_voltage(reg_l2, 1200000, 1200000);
+        if (rc) {
+            pr_err("set_voltage l2 failed, rc=%d\n", rc);
+            return -EINVAL;
+        }
+        gpio43 = PM8921_GPIO_PM_TO_SYS(43);
+        rc = gpio_request(gpio43, "disp_rst_n");
+        if (rc) {
+            pr_err("request gpio 43 failed, rc=%d\n", rc);
+            return -ENODEV;
+        }
+        dsi_power_on = true;
+    }
+    if (on) {
+       if(ldo_access_flag)
+       {
+            rc = regulator_set_optimum_mode(reg_l8, 100000);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l8 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            rc = regulator_set_optimum_mode(reg_l29, 100000);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l29 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            rc = regulator_set_optimum_mode(reg_l2, 100000);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l2 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            rc = regulator_enable(reg_l2);
+            if (rc) {
+                pr_err("enable l2 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            rc = regulator_enable(reg_l8);
+            if (rc) {
+                pr_err("enable l8 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            rc = regulator_enable(reg_l29);
+            if (rc) {
+                pr_err("enable l29 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            gpio_set_value_cansleep(gpio43, 1);
+            mdelay(25);
+            gpio_set_value_cansleep(gpio43, 0);
+            mdelay(5);
+            gpio_set_value_cansleep(gpio43, 1);
+
+            ldo_access_flag = false;
+        }
+    } else {  /* off */
+       if(!ldo_access_flag)
+       {
+            mdelay(110);
+            rc = regulator_disable(reg_l2);
+            if (rc) {
+                pr_err("disable reg_l2 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            rc = regulator_disable(reg_l8);
+            if (rc) {
+                pr_err("disable reg_l8 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            rc = regulator_disable(reg_l29);
+            if (rc) {
+                pr_err("disable reg_l29 failed, rc=%d\n", rc);
+                return -ENODEV;
+            }
+            rc = regulator_set_optimum_mode(reg_l2, 100);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l2 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            rc = regulator_set_optimum_mode(reg_l8, 100);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l8 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            rc = regulator_set_optimum_mode(reg_l29, 100);
+            if (rc < 0) {
+                pr_err("set_optimum_mode l29 failed, rc=%d\n", rc);
+                return -EINVAL;
+            }
+            gpio_set_value_cansleep(gpio43, 0);
+            ldo_access_flag = true;
+        }
+    }
+    return 0;
+}
+#else /* QCOM Original */
 static int mipi_dsi_cdp_panel_power(int on)
 {
 	static struct regulator *reg_l8, *reg_l23, *reg_l2;
@@ -467,6 +662,7 @@ static int mipi_dsi_cdp_panel_power(int on)
 	}
 	return 0;
 }
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 
 static char mipi_dsi_splash_is_enabled(void);
 static int mipi_dsi_panel_power(int on)
@@ -478,7 +674,11 @@ static int mipi_dsi_panel_power(int on)
 	if (machine_is_msm8960_liquid())
 		ret = mipi_dsi_liquid_panel_power(on);
 	else
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+        ret = mipi_dsi_cdp_panel_power_Oscar(on);
+#else
 		ret = mipi_dsi_cdp_panel_power(on);
+#endif
 
 	return ret;
 }
@@ -585,7 +785,11 @@ static struct msm_panel_common_pdata mdp_pdata = {
 #else
 	.mem_hid = MEMTYPE_EBI1,
 #endif
+#ifdef CONFIG_FB_MSM_LOGO
+    .cont_splash_enabled = 0x00,
+#else
 	.cont_splash_enabled = 0x01,
+#endif
 	.mdp_iommu_split_domain = 0,
 };
 
@@ -601,11 +805,19 @@ void __init msm8960_mdp_writeback(struct memtype_reserve* reserve_table)
 #endif
 }
 
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+static struct platform_device mipi_dsi_samsung_oled_panel_octa_device = {
+        .name = "mipi_oscar",
+        .id = 0,
+    };
+#endif
+
 static char mipi_dsi_splash_is_enabled(void)
 {
 	return mdp_pdata.cont_splash_enabled;
 }
 
+#if defined(CONFIG_FB_MSM_MIPI_DSI_TOSHIBA)
 #define LPM_CHANNEL0 0
 static int toshiba_gpio[] = {LPM_CHANNEL0};
 
@@ -621,6 +833,7 @@ static struct platform_device mipi_dsi_toshiba_panel_device = {
 		.platform_data = &toshiba_pdata,
 	}
 };
+#endif
 
 #define FPGA_3D_GPIO_CONFIG_ADDR	0xB5
 static int dsi2lvds_gpio[4] = {
@@ -770,9 +983,12 @@ static struct msm_bus_scale_pdata dtv_bus_scale_pdata = {
 
 static struct lcdc_platform_data dtv_pdata = {
 	.bus_scale_table = &dtv_bus_scale_pdata,
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL // 20120905 jylee
 	.lcdc_power_save = hdmi_panel_power,
+#endif
 };
 
+#ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 static int hdmi_panel_power(int on)
 {
 	int rc;
@@ -785,6 +1001,7 @@ static int hdmi_panel_power(int on)
 	pr_debug("%s: HDMI Core: %s Success\n", __func__, (on ? "ON" : "OFF"));
 	return rc;
 }
+#endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 #endif
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
@@ -958,29 +1175,37 @@ error1:
 static int hdmi_cec_power(int on)
 {
 	static int prev_on;
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	int rc;
+#endif
 
 	if (on == prev_on)
 		return 0;
 
 	if (on) {
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 		rc = gpio_request(99, "HDMI_CEC_VAR");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
 				"HDMI_CEC_VAR", 99, rc);
 			goto error;
 		}
+#endif
 		pr_debug("%s(on): success\n", __func__);
 	} else {
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 		gpio_free(99);
+#endif
 		pr_debug("%s(off): success\n", __func__);
 	}
 
 	prev_on = on;
 
 	return 0;
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 error:
 	return rc;
+#endif
 }
 #endif /* CONFIG_FB_MSM_HDMI_MSM_PANEL */
 
@@ -1006,7 +1231,29 @@ void __init msm8960_init_fb(void)
 	if (machine_is_msm8960_liquid())
 		platform_device_register(&mipi_dsi2lvds_bridge_device);
 	else
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+        platform_device_register(&mipi_dsi_samsung_oled_panel_octa_device);
+#else
 		platform_device_register(&mipi_dsi_toshiba_panel_device);
+#endif
+
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+    msm_gpiomux_install(msm8960_lcd_detect_configs,
+            ARRAY_SIZE(msm8960_lcd_detect_configs));
+    rc = gpio_request(LCD_PANEL_DETECT, "lcd_dect");
+    if(rc){
+        pr_err("lcd_dectect_request failed: %d\n", rc);
+    }
+
+    if(gpio_get_value(LCD_PANEL_DETECT)) {
+        dma_ch = true;
+        printk(KERN_ERR "LCD panel is not connected\n");
+
+    } else {
+        dma_ch = false;
+        printk(KERN_ERR "LCD panel is connected\n");//hi
+    }
+#endif
 
 	msm_fb_register_device("mdp", &mdp_pdata);
 	msm_fb_register_device("mipi_dsi", &mipi_dsi_pdata);

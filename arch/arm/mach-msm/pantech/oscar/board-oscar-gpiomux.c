@@ -17,6 +17,9 @@
 #include <mach/socinfo.h>
 #include "../../devices.h"
 #include "../../board-8960.h"
+#ifdef CONFIG_F_SKYDISP_SILENT_BOOT //silent boot p13447 shinjg
+#include "../../sky_sys_reset.h"
+#endif
 
 /* The SPI configurations apply to GSBI 1*/
 static struct gpiomux_setting spi_active = {
@@ -43,11 +46,40 @@ static struct gpiomux_setting spi_suspended_config2 = {
 	.pull = GPIOMUX_PULL_UP,
 };
 
+#ifdef CONFIG_PANTECH_CAMERA_FLASH
+static struct gpiomux_setting gsbi1_active_config = {
+    .func = GPIOMUX_FUNC_1,
+    .drv = GPIOMUX_DRV_8MA, //GPIOMUX_DRV_12MA ?
+    .pull = GPIOMUX_PULL_NONE,
+};
+
+static struct gpiomux_setting gsbi1_suspended_config = {
+    .func = GPIOMUX_FUNC_1,//GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,//GPIOMUX_PULL_KEEPER,//GPIOMUX_PULL_DOWN,
+};
+#endif
+
+#if defined(CONFIG_OV8820_ACT)
+static struct gpiomux_setting gsbi2_active_cfg = {
+    .func = GPIOMUX_FUNC_1,
+    .drv = GPIOMUX_DRV_8MA,
+    .pull = GPIOMUX_PULL_NONE,
+};
+static struct gpiomux_setting gsbi2_suspended_cfg = {
+    .func = GPIOMUX_FUNC_1, /*i2c suspend*/
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,//GPIOMUX_PULL_KEEPER, //GPIOMUX_PULL_DOWN
+};
+#endif
+
+#ifdef CONFIG_TOUCHSCREEN_QT602240_MSM8960 //P12281
 static struct gpiomux_setting gsbi3_suspended_cfg = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_KEEPER,
 };
+#endif
 
 static struct gpiomux_setting gsbi3_active_cfg = {
 	.func = GPIOMUX_FUNC_1,
@@ -83,11 +115,25 @@ static struct gpiomux_setting external_vfr[] = {
 	},
 };
 
+#ifdef CONFIG_PANTECH_GPIO_SLEEP_CONFIG
+static struct gpiomux_setting gsbi5_out_np_low = {
+    .func = GPIOMUX_FUNC_1,
+    .drv = GPIOMUX_DRV_8MA,
+    .pull = GPIOMUX_PULL_NONE,
+    .dir = GPIOMUX_OUT_LOW,
+};
+static struct gpiomux_setting gsbi_uart = {
+    .func = GPIOMUX_FUNC_1,
+    .drv = GPIOMUX_DRV_8MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+#else /* QCOM Original */
 static struct gpiomux_setting gsbi_uart = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
+#endif /* CONFIG_PANTECH_GPIO_SLEEP_CONFIG */
 
 static struct gpiomux_setting gsbi8_uartdm_active_cfg = {
 	.func = GPIOMUX_FUNC_1,
@@ -101,17 +147,21 @@ static struct gpiomux_setting gsbi8_uartdm_suspended_cfg = {
 	.pull = GPIOMUX_PULL_DOWN,
 };
 
+#if defined(CONFIG_PANTECH_PMIC_MAX17058)
+#if defined(T_OSCAR)
 static struct gpiomux_setting gsbi9_active_cfg = {
 	.func = GPIOMUX_FUNC_2,
-	.drv = GPIOMUX_DRV_8MA,
-	.pull = GPIOMUX_PULL_DOWN,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
 };
 
 static struct gpiomux_setting gsbi9_suspended_cfg = {
-	.func = GPIOMUX_FUNC_2,
+	.func = GPIOMUX_FUNC_2, /*i2c suspend*/
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_DOWN,
+	.pull = GPIOMUX_PULL_NONE,
 };
+#endif
+#endif /* CONFIG_PANTECH_PMIC_MAX17058 */
 
 static struct gpiomux_setting gsbi10 = {
 	.func = GPIOMUX_FUNC_2,
@@ -131,6 +181,7 @@ static struct gpiomux_setting cdc_mclk = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
+#ifndef CONFIG_PN544
 static struct gpiomux_setting audio_auxpcm[] = {
 	/* Suspended state */
 	{
@@ -145,6 +196,7 @@ static struct gpiomux_setting audio_auxpcm[] = {
 		.pull = GPIOMUX_PULL_NONE,
 	},
 };
+#endif
 
 #if defined(CONFIG_KS8851) || defined(CONFIG_KS8851_MODULE)
 static struct gpiomux_setting gpio_eth_config = {
@@ -175,7 +227,11 @@ static struct gpiomux_setting wcnss_5wire_active_cfg = {
 static struct gpiomux_setting cyts_resout_sus_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_6MA,
+#ifdef CONFIG_PANTECH_CAMERA
+    .pull = GPIOMUX_PULL_DOWN,
+#else
 	.pull = GPIOMUX_PULL_UP,
+#endif
 };
 
 static struct gpiomux_setting cyts_resout_act_cfg = {
@@ -368,6 +424,7 @@ static struct msm_gpiomux_config msm8960_gsbi8_uartdm_configs[] = {
 };
 
 static struct msm_gpiomux_config msm8960_fusion_gsbi_configs[] = {
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	{
 		.gpio = 93,
 		.settings = {
@@ -396,6 +453,7 @@ static struct msm_gpiomux_config msm8960_fusion_gsbi_configs[] = {
 			[GPIOMUX_ACTIVE] = &gsbi9_active_cfg,
 		}
 	},
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 };
 
 static struct msm_gpiomux_config msm8960_gsbi_configs[] __initdata = {
@@ -413,6 +471,23 @@ static struct msm_gpiomux_config msm8960_gsbi_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &spi_active,
 		},
 	},
+#ifdef CONFIG_PANTECH_CAMERA_FLASH
+    {
+        .gpio      = 8,	/* GSBI1 I2C QUP SDA */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi1_suspended_config,
+            [GPIOMUX_ACTIVE] = &gsbi1_active_config,
+        },
+    },
+    {
+        .gpio      = 9,	/* GSBI1 I2C QUP SCL */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi1_suspended_config,
+            [GPIOMUX_ACTIVE] = &gsbi1_active_config,
+        },
+    },
+#else /* CONFIG_PANTECH_CAMERA_FLASH */
+#if defined(CONFIG_PANTECH_PMIC_MAX17058)
 	{
 		.gpio      = 8,		/* GSBI1 QUP SPI_CS_N */
 		.settings = {
@@ -427,6 +502,39 @@ static struct msm_gpiomux_config msm8960_gsbi_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &spi_active,
 		},
 	},
+#else /* CONFIG_PANTECH_PMIC_MAX17058 */
+    {
+        .gpio      = 8,		/* GSBI1 QUP SPI_CS_N */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &spi_suspended_config,
+            [GPIOMUX_ACTIVE] = &spi_active,
+        },
+    },
+    {
+        .gpio      = 9,		/* GSBI1 QUP SPI_CLK */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &spi_suspended_config,
+            [GPIOMUX_ACTIVE] = &spi_active,
+        },
+    },
+#endif /* CONFIG_PANTECH_PMIC_MAX17058 */
+#endif /* CONFIG_PANTECH_CAMERA_FLASH */
+#if defined(CONFIG_OV8820_ACT)
+    {
+        .gpio      = 12,    /* GSBI2 I2C QUP SDA */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi2_suspended_cfg,
+            [GPIOMUX_ACTIVE] = &gsbi2_active_cfg,
+        },
+    },
+    {
+        .gpio      = 13,    /* GSBI2 I2C QUP SCL */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi2_suspended_cfg,
+            [GPIOMUX_ACTIVE] = &gsbi2_active_cfg,
+        },
+    },
+#endif /* CONFIG_OV8820_ACT */
 	{
 		.gpio      = 14,		/* GSBI1 SPI_CS_1 */
 		.settings = {
@@ -448,6 +556,22 @@ static struct msm_gpiomux_config msm8960_gsbi_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &gsbi3_active_cfg,
 		},
 	},
+#if defined(CONFIG_PANTECH_PMIC_MAX17058)
+    {
+        .gpio      = 95,    /* GSBI9 I2C QUP SDA */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi9_suspended_cfg,
+            [GPIOMUX_ACTIVE] = &gsbi9_active_cfg,
+        },
+    },
+    {
+        .gpio      = 96,    /* GSBI9 I2C QUP SCL */
+        .settings = {
+            [GPIOMUX_SUSPENDED] = &gsbi9_suspended_cfg,
+            [GPIOMUX_ACTIVE] = &gsbi9_active_cfg,
+        },
+    },
+#endif /* CONFIG_PANTECH_PMIC_MAX17058 */
 	{
 		.gpio      = 27,        /* GSBI6 BT_INT2AP_N for AR3002 */
 		.settings = {
@@ -499,7 +623,11 @@ static struct msm_gpiomux_config msm8960_gsbi5_uart_configs[] __initdata = {
 	{
 		.gpio      = 22,        /* GSBI5 UART2 */
 		.settings = {
+#ifdef CONFIG_PANTECH_GPIO_SLEEP_CONFIG
+            [GPIOMUX_SUSPENDED] = &gsbi5_out_np_low,
+#else
 			[GPIOMUX_SUSPENDED] = &gsbi_uart,
+#endif /* CONFIG_PANTECH_GPIO_SLEEP_CONFIG */
 		},
 	},
 	{
@@ -583,6 +711,7 @@ static struct msm_gpiomux_config msm8960_audio_codec_configs[] __initdata = {
 	},
 };
 
+#ifndef CONFIG_PN544
 static struct msm_gpiomux_config msm8960_audio_auxpcm_configs[] __initdata = {
 	{
 		.gpio = 63,
@@ -613,6 +742,7 @@ static struct msm_gpiomux_config msm8960_audio_auxpcm_configs[] __initdata = {
 		},
 	},
 };
+#endif
 
 static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 	{
@@ -675,6 +805,49 @@ static struct msm_gpiomux_config msm8960_cyts_configs[] __initdata = {
 		},
 	},
 };
+
+#ifdef CONFIG_TOUCHSCREEN_QT602240_MSM8960 // p11223 added
+static struct gpiomux_setting qt602240_sleep_sus_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_6MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+
+static struct gpiomux_setting qt602240_sleep_act_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_6MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+
+static struct gpiomux_setting qt602240_int_act_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_8MA,
+    .pull = GPIOMUX_PULL_UP,
+};
+
+static struct gpiomux_setting qt602240_int_sus_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+
+static struct msm_gpiomux_config msm8960_qt602240_configs[] __initdata = {
+    {	/* qt602240 INTERRUPT */
+        .gpio = 11,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &qt602240_int_act_cfg,
+            [GPIOMUX_SUSPENDED] = &qt602240_int_sus_cfg,
+        },
+    },
+    {	/* qt602240 SLEEP */
+        .gpio = 50,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &qt602240_sleep_act_cfg,
+            [GPIOMUX_SUSPENDED] = &qt602240_sleep_sus_cfg,
+        },
+    },
+};
+#endif /* CONFIG_TOUCHSCREEN_QT602240_MSM8960 */
 
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 static struct msm_gpiomux_config msm8960_hsic_configs[] = {
@@ -937,6 +1110,171 @@ static struct msm_gpiomux_config msm8960_hdmi_configs[] __initdata = {
 };
 #endif
 
+#ifdef CONFIG_PANTECH_CHARGER_WIRELESS
+#define W_CHG_FULL 0
+#define USB_CHG_DET 1
+
+static struct gpiomux_setting wireless_fulldet_suspend_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+static struct gpiomux_setting wireless_fulldet_active_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+};
+static struct gpiomux_setting wireless_usbdet_suspend_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+    .dir = GPIOMUX_OUT_LOW,
+};
+static struct gpiomux_setting wireless_usbdet_active_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+    .dir = GPIOMUX_OUT_LOW,
+};
+static struct msm_gpiomux_config msm8960_wireless_charger_configs[] __initdata = {
+    {
+        .gpio = W_CHG_FULL,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &wireless_fulldet_active_cfg,
+            [GPIOMUX_SUSPENDED] = &wireless_fulldet_suspend_cfg,
+        },
+    },
+    {
+        .gpio = USB_CHG_DET,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &wireless_usbdet_active_cfg,
+            [GPIOMUX_SUSPENDED] = &wireless_usbdet_suspend_cfg,
+        },
+    },
+};
+#endif /* CONFIG_PANTECH_CHARGER_WIRELESS */
+
+#ifdef CONFIG_PANTECH_PMIC  // gpio-config for QC recommendation (pull-up)
+static struct gpiomux_setting pm_irq_suspend_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_UP,
+    .dir = GPIOMUX_IN,
+};
+static struct gpiomux_setting pm_irq_active_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_UP,
+    .dir = GPIOMUX_IN,
+};
+static struct msm_gpiomux_config msm8960_pm_irq_configs[] __initdata = {
+    {
+        .gpio = 103,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &pm_irq_active_cfg,
+            [GPIOMUX_SUSPENDED] = &pm_irq_suspend_cfg,
+        },
+    },
+    {
+        .gpio = 104,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &pm_irq_active_cfg,
+            [GPIOMUX_SUSPENDED] = &pm_irq_suspend_cfg,
+        },
+    },
+};
+#endif /* CONFIG_PANTECH_PMIC */
+
+//chjeon20120211@LS1 add
+#ifdef CONFIG_PANTECH_GPIO_SLEEP_CONFIG
+static struct gpiomux_setting msm8960_gpio_suspend_in_pd_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+    .dir = GPIOMUX_IN,
+};
+
+static struct msm_gpiomux_config msm8960_sleep_gpio_gpio_configs[] __initdata = {
+    {
+        .gpio = 18,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 19,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 32,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 33,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 73,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 74,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 89,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 90,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 99,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 100,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+    {
+        .gpio = 101,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &msm8960_gpio_suspend_in_pd_cfg,
+            [GPIOMUX_SUSPENDED] = &msm8960_gpio_suspend_in_pd_cfg,
+        },
+    },
+};
+#endif /* CONFIG_PANTECH_GPIO_SLEEP_CONFIG */
+
 #ifdef CONFIG_MMC_MSM_SDC2_SUPPORT
 static struct gpiomux_setting sdcc2_clk_actv_cfg = {
 	.func = GPIOMUX_FUNC_2,
@@ -979,6 +1317,7 @@ static struct msm_gpiomux_config msm8960_sdcc2_configs[] __initdata = {
 		[GPIOMUX_SUSPENDED] = &sdcc2_suspend_cfg,
 		},
 	},
+#if !defined(CONFIG_MACH_MSM8960_OSCAR)
 	{
 		/* DATA_1 */
 		.gpio      = 90,
@@ -995,6 +1334,7 @@ static struct msm_gpiomux_config msm8960_sdcc2_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &sdcc2_suspend_cfg,
 		},
 	},
+#endif /* !CONFIG_MACH_MSM8960_OSCAR */
 	{
 		/* CMD */
 		.gpio      = 97,
@@ -1013,6 +1353,32 @@ static struct msm_gpiomux_config msm8960_sdcc2_configs[] __initdata = {
 	},
 };
 #endif
+
+#ifdef CONFIG_PANTECH_SND //kdkim
+static struct gpiomux_setting heaset_detect_active_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+    .dir = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting heaset_detect_suspend_cfg = {
+    .func = GPIOMUX_FUNC_GPIO,
+    .drv = GPIOMUX_DRV_2MA,
+    .pull = GPIOMUX_PULL_DOWN,
+    .dir = GPIOMUX_IN,
+};
+
+static struct msm_gpiomux_config headset_detect_irq_configs[] __initdata = {
+    {
+        .gpio = 35,
+        .settings = {
+            [GPIOMUX_ACTIVE]    = &heaset_detect_active_cfg,
+            [GPIOMUX_SUSPENDED] = &heaset_detect_suspend_cfg,
+        },
+    },
+};
+#endif /* CONFIG_PANTECH_SND */
 
 int __init msm8960_init_gpiomux(void)
 {
@@ -1034,14 +1400,21 @@ int __init msm8960_init_gpiomux(void)
 	msm_gpiomux_install(msm8960_cyts_configs,
 			ARRAY_SIZE(msm8960_cyts_configs));
 
+#ifdef CONFIG_TOUCHSCREEN_QT602240_MSM8960
+    msm_gpiomux_install(msm8960_qt602240_configs,
+            ARRAY_SIZE(msm8960_qt602240_configs));
+#endif
+
 	msm_gpiomux_install(msm8960_slimbus_config,
 			ARRAY_SIZE(msm8960_slimbus_config));
 
 	msm_gpiomux_install(msm8960_audio_codec_configs,
 			ARRAY_SIZE(msm8960_audio_codec_configs));
 
+#ifndef CONFIG_PN544
 	msm_gpiomux_install(msm8960_audio_auxpcm_configs,
 			ARRAY_SIZE(msm8960_audio_auxpcm_configs));
+#endif
 
 	msm_gpiomux_install(wcnss_5wire_interface,
 			ARRAY_SIZE(wcnss_5wire_interface));
@@ -1086,6 +1459,21 @@ int __init msm8960_init_gpiomux(void)
 		msm_gpiomux_install(msm8960_gsbi8_uartdm_configs,
 			ARRAY_SIZE(msm8960_gsbi8_uartdm_configs));
 
+#ifdef CONFIG_PANTECH_CHARGER_WIRELESS
+    msm_gpiomux_install(msm8960_wireless_charger_configs,
+            ARRAY_SIZE(msm8960_wireless_charger_configs));
+#endif
+
+#ifdef CONFIG_PANTECH_PMIC // gpio-config for QC recommendation (pull-up)
+    msm_gpiomux_install(msm8960_pm_irq_configs,
+            ARRAY_SIZE(msm8960_pm_irq_configs));
+#endif
+
+#ifdef CONFIG_PANTECH_SND //kdkim
+    msm_gpiomux_install(headset_detect_irq_configs,
+            ARRAY_SIZE(headset_detect_irq_configs));
+#endif /* CONFIG_PANTECH_SND */
+
 	if (socinfo_get_platform_subtype() == PLATFORM_SUBTYPE_SGLTE)
 		msm_gpiomux_install(msm8960_gsbi8_uart_configs,
 			ARRAY_SIZE(msm8960_gsbi8_uart_configs));
@@ -1101,6 +1489,11 @@ int __init msm8960_init_gpiomux(void)
 		msm_gpiomux_install(msm8960_external_vfr_configs,
 			ARRAY_SIZE(msm8960_external_vfr_configs));
 	}
+
+#ifdef CONFIG_PANTECH_GPIO_SLEEP_CONFIG
+    msm_gpiomux_install(msm8960_sleep_gpio_gpio_configs,
+            ARRAY_SIZE(msm8960_sleep_gpio_gpio_configs));
+#endif /* CONFIG_PANTECH_GPIO_SLEEP_CONFIG */
 
 #ifdef CONFIG_MMC_MSM_SDC2_SUPPORT
 	msm_gpiomux_install(msm8960_sdcc2_configs,

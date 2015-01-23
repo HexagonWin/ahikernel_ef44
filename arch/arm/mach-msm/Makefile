@@ -15,6 +15,18 @@ BOARD_REGULATOR_OBJ_NAME:=board-8960-regulator.o
 CLOCK_OBJ_NAME:=clock-8960.o
 DEVICES_OBJ_NAME:=devices-8960.o
 
+# Pantech Flex (oscar) names
+ifdef CONFIG_MACH_MSM8960_OSCAR
+BOARD_OBJ_NAME:=pantech/oscar/board-oscar.o
+BOARD_CAMERA_OBJ_NAME:=pantech/oscar/board-oscar-camera.o
+BOARD_DISPLAY_OBJ_NAME:=pantech/oscar/board-oscar-display.o
+BOARD_GPIOMUX_OBJ_NAME:=pantech/oscar/board-oscar-gpiomux.o
+BOARD_PMIC_OBJ_NAME:=pantech/oscar/board-oscar-pmic.o
+BOARD_REGULATOR_OBJ_NAME:=pantech/oscar/board-oscar-regulator.o
+CLOCK_OBJ_NAME:=pantech/oscar/clock-oscar.o
+DEVICES_OBJ_NAME:=pantech/oscar/devices-oscar.o
+endif
+
 obj-y += io.o dma.o memory.o
 ifndef CONFIG_ARM_ARCH_TIMER
 obj-y += timer.o
@@ -292,6 +304,7 @@ board-8064-all-objs += board-8064.o board-8064-pmic.o board-8064-storage.o board
 obj-$(CONFIG_MACH_MSM8960_CDP) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
 obj-$(CONFIG_MACH_MSM8960_MTP) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
 obj-$(CONFIG_MACH_MSM8960_FLUID) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
+obj-$(CONFIG_MACH_MSM8960_OSCAR) += board-8960-all.o $(BOARD_REGULATOR_OBJ_NAME)
 obj-$(CONFIG_MACH_MSM8930_CDP) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o
 obj-$(CONFIG_MACH_MSM8930_MTP) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o
 obj-$(CONFIG_MACH_MSM8930_FLUID) += board-8930-all.o board-8930-regulator-pm8038.o board-8930-regulator-pm8917.o

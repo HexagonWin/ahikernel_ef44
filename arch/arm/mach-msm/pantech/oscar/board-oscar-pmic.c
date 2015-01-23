@@ -22,6 +22,9 @@
 #include <mach/restart.h>
 #include "../../devices.h"
 #include "../../board-8960.h"
+#ifdef CONFIG_PANTECH_VIBRATOR
+#include <linux/mfd/pm8xxx/vibrator.h>
+#endif
 
 struct pm8xxx_gpio_init {
 	unsigned			gpio;
@@ -176,6 +179,10 @@ static struct pm8xxx_adc_amux pm8xxx_adc_channels_data[] = {
 		ADC_DECIMATION_TYPE2, ADC_SCALE_XOTHERM},
 	{"pa_therm0", ADC_MPP_1_AMUX3, CHAN_PATH_SCALING1, AMUX_RSV1,
 		ADC_DECIMATION_TYPE2, ADC_SCALE_PA_THERM},
+#ifdef CONFIG_PANTECH_CHARGER
+    {"cable_id", ADC_MPP_1_AMUX6, CHAN_PATH_SCALING1, AMUX_RSV1,
+        ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
+#endif
 };
 
 static struct pm8xxx_adc_properties pm8xxx_adc_data = {
@@ -215,6 +222,20 @@ static struct pm8xxx_pwrkey_platform_data pm8xxx_pwrkey_pdata = {
 	.kpd_trigger_delay_us	= 15625,
 	.wakeup			= 1,
 };
+
+#ifdef CONFIG_PANTECH_VIBRATOR
+static struct pm8xxx_vibrator_platform_data pm8xxx_vib_pdata = {  // mirinae
+    .initial_vibrate_ms  = 500,
+    .level_mV = 3000,
+    .max_timeout_ms = 15000,
+};
+#endif
+
+#if defined(CONFIG_PANTECH_PMIC_BUTTON_POWERONOFF)
+static struct pm8xxx_pwrkey_emulation_platform_data pm8xxx_pwrkey_emulation_pdata = {
+    .trigger_delay_ms	= 30000,
+};
+#endif
 
 /* Rotate lock key is not available so use F1 */
 #define KEY_ROTATE_LOCK KEY_F1
@@ -396,6 +417,33 @@ static int pm8921_therm_mitigation[] = {
 #define MAX_VOLTAGE_MV		4200
 #define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
+#if defined(CONFIG_PANTECH_CHARGER)
+#if defined (CONFIG_MACH_MSM8960_OSCAR)
+    .safety_time = 512,
+    .update_time = 20000,
+    .max_voltage = 4360,
+    .min_voltage = 3600,
+    .resume_voltage_delta	= 100,
+    .term_current = 50,
+    .cool_temp = 0,
+    .warm_temp = 47,
+    .temp_check_period = 1,
+    .max_bat_chg_current = 900,
+    .cool_bat_chg_current	= 850,
+    .warm_bat_chg_current	= 850,
+    .cool_bat_voltage	= 4000,
+    .warm_bat_voltage	= 4000,
+    .thermal_mitigation = pm8921_therm_mitigation,
+    .thermal_levels	= ARRAY_SIZE(pm8921_therm_mitigation),
+    .rconn_mohm		= 18,
+    //.trkl_voltage = 2800,
+    .weak_voltage = 3200,
+    .trkl_current = 50,
+    //.weak_current = 325,
+    .cold_thr = 0,
+    .hot_thr = 1,
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
+#else /* QCOM Original */
 	.safety_time		= 180,
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
@@ -415,6 +463,7 @@ static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
 	.thermal_mitigation	= pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(pm8921_therm_mitigation),
 	.rconn_mohm		= 18,
+#endif /* CONFIG_PANTECH_CHARGER */
 };
 
 static struct pm8xxx_misc_platform_data pm8xxx_misc_pdata = {
@@ -426,7 +475,11 @@ static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
 	.r_sense			= 10,
 	.v_cutoff			= 3400,
 	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
+#ifdef CONFIG_PANTECH_BMS
+    .rconn_mohm			= 30,
+#else
 	.rconn_mohm			= 18,
+#endif
 	.shutdown_soc_valid_limit	= 20,
 	.adjust_soc_low_threshold	= 25,
 	.chg_term_ua			= CHG_TERM_MA * 1000,
@@ -523,7 +576,7 @@ static struct pm8xxx_pwm_duty_cycles pm8921_led0_pwm_duty_cycles = {
 	.duty_pcts = (int *)&pm8921_led0_pwm_duty_pcts,
 	.num_duty_pcts = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts),
 	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
-	.start_idx = 1,
+	.start_idx = 1, // In ICS start_idx = 0
 };
 
 static struct pm8xxx_led_config pm8921_led_configs[] = {
@@ -579,8 +632,14 @@ static struct pm8921_platform_data pm8921_platform_data __devinitdata = {
 	.bms_pdata		= &pm8921_bms_pdata,
 	.adc_pdata		= &pm8xxx_adc_pdata,
 	.leds_pdata		= &pm8xxx_leds_pdata,
+#ifdef CONFIG_PANTECH_VIBRATOR
+    .vibrator_pdata	= &pm8xxx_vib_pdata,
+#endif
 	.ccadc_pdata		= &pm8xxx_ccadc_pdata,
 	.pwm_pdata		= &pm8xxx_pwm_pdata,
+#ifdef CONFIG_PANTECH_PMIC
+    .pwrkey_emulation_pdata = &pm8xxx_pwrkey_emulation_pdata,
+#endif
 };
 
 static struct msm_ssbi_platform_data msm8960_ssbi_pm8921_pdata __devinitdata = {

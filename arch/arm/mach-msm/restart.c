@@ -38,6 +38,9 @@
 #ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
 #include "sky_sys_reset.h"
 #endif /* CONFIG_PANTECH_ERR_CRASH_LOGGING */
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+#include "../../../drivers/video/msm/mipi_samsung_octa.h"
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 
 #define WDT0_RST	0x38
 #define WDT0_EN		0x40
@@ -158,9 +161,18 @@ static void __msm_power_off(int lower_pshold)
 	return;
 }
 
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+extern void oscar_lcd_poweroff(void);
+extern struct Lcd_State_Info Oscar_State;
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 static void msm_power_off(void)
 {
 	/* MSM initiated power off, lower ps_hold */
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+	/* this function is for OLED panel */
+	/*LS2team jiseunghwa[120223]*/
+	oscar_lcd_poweroff();
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 	__msm_power_off(1);
 }
 
@@ -229,6 +241,14 @@ void msm_restart(char mode, const char *cmd)
 	if (!download_mode)
 		set_dload_mode(0);
 #endif
+
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+	/* this function is for OLED panel */
+	/*LS2team jiseunghwa[120223]*/
+
+	if(Oscar_State.chargerFlag == true)
+		oscar_lcd_poweroff();
+#endif /* CONFIG_MACH_MSM8960_OSCAR */
 
 #ifdef CONFIG_PANTECH_ERR_CRASH_LOGGING
 	sky_backlight_off = sky_sys_rst_is_backlight_off();

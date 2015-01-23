@@ -777,6 +777,14 @@ config MACH_MSM8960_LIQUID
 	help
 	  Support for the Qualcomm MSM8960 LIQUID device.
 
+config MACH_MSM8960_OSCAR
+	depends on ARCH_MSM8960
+	bool "MSM8960 OSCAR"
+	default n
+	select CUST_PANTECH_H
+	help
+	  Support for the Qualcomm MSM8960 OSCAR device.
+
 config MACH_MSM8930_CDP
 	depends on ARCH_MSM8930
 	bool "MSM8930 CDP"
@@ -873,7 +881,14 @@ config MACH_FSM9XXX_SURF
 	  chipset based SURF evaluation board and
 	  FFA board.
 
+config CUST_PANTECH_H
+	bool
+
 endmenu
+
+if CUST_PANTECH_H
+source "arch/arm/mach-msm/pantech/Kconfig"
+endif
 
 config MSM_STACKED_MEMORY
 	bool "Stacked Memory"

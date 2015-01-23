@@ -49,6 +49,11 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/printk.h>
 
+#ifdef CONFIG_PANTECH
+/* p14974 PLM1106 fix halt during boot animation */
+#define FEATURE_QCOM_BUG_FIX_SURFACEFLINGER_PENDING
+#endif
+
 /*
  * Architectures can override it:
  */
@@ -1397,8 +1402,15 @@ again:
 		retry = 1;
 	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
 
+#ifdef FEATURE_QCOM_BUG_FIX_SURFACEFLINGER_PENDING
+	if (retry && console_trylock()) {
+		retry = 0;
+		goto again;
+	}
+#else /* QCOM Original */
 	if (retry && console_trylock())
 		goto again;
+#endif /* FEATURE_QCOM_BUG_FIX_SURFACEFLINGER_PENDING */
 
 	if (wake_klogd)
 		wake_up_klogd();

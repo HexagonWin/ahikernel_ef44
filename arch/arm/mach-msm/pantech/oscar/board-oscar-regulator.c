@@ -17,6 +17,8 @@
 
 #include "../../board-8960.h"
 
+#include <pantech/BOARD_REV.h> // mirinae
+
 #define VREG_CONSUMERS(_id) \
 	static struct regulator_consumer_supply vreg_consumers_##_id[]
 
@@ -31,6 +33,12 @@ VREG_CONSUMERS(L2) = {
 	REGULATOR_SUPPLY("8921_l2",		NULL),
 	REGULATOR_SUPPLY("dsi_vdda",		"mipi_dsi.1"),
 	REGULATOR_SUPPLY("dsi_pll_vdda",	"mdp.0"),
+#ifdef CONFIG_PANTECH_CAMERA_OV8820
+    REGULATOR_SUPPLY("mipi_csi_vdd",	"4-006c"),
+#endif
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC
+    REGULATOR_SUPPLY("mipi_csi_vdd",	"4-0040"),
+#endif
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csid.0"),
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csid.1"),
 	REGULATOR_SUPPLY("mipi_csi_vdd",	"msm_csid.2"),
@@ -72,19 +80,35 @@ VREG_CONSUMERS(L10) = {
 };
 VREG_CONSUMERS(L11) = {
 	REGULATOR_SUPPLY("8921_l11",		NULL),
+#ifdef CONFIG_PANTECH_CAMERA_OV8820
+    REGULATOR_SUPPLY("cam_vana",		"4-006c"),
+#endif
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC
+    REGULATOR_SUPPLY("cam_vana",		"4-0040"),
+#endif
+#ifndef CONFIG_PANTECH_CAMERA
 	REGULATOR_SUPPLY("cam_vana",		"4-001a"),
 	REGULATOR_SUPPLY("cam_vana",		"4-006c"),
 	REGULATOR_SUPPLY("cam_vana",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vana",		"4-0020"),
 	REGULATOR_SUPPLY("cam_vana",		"4-0034"),
+#endif
 };
 VREG_CONSUMERS(L12) = {
 	REGULATOR_SUPPLY("8921_l12",		NULL),
+#ifdef CONFIG_PANTECH_CAMERA_OV8820
+    REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
+#endif
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC
+    REGULATOR_SUPPLY("cam_vdig",		"4-0040"),
+#endif
+#ifndef CONFIG_PANTECH_CAMERA
 	REGULATOR_SUPPLY("cam_vdig",		"4-001a"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-006c"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0020"),
 	REGULATOR_SUPPLY("cam_vdig",		"4-0034"),
+#endif
 };
 VREG_CONSUMERS(L14) = {
 	REGULATOR_SUPPLY("8921_l14",		NULL),
@@ -95,11 +119,16 @@ VREG_CONSUMERS(L15) = {
 };
 VREG_CONSUMERS(L16) = {
 	REGULATOR_SUPPLY("8921_l16",		NULL),
+#ifdef CONFIG_PANTECH_CAMERA_OV8820
+    REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
+#endif
+#ifndef CONFIG_PANTECH_CAMERA
 	REGULATOR_SUPPLY("cam_vaf",		"4-001a"),
 	REGULATOR_SUPPLY("cam_vaf",		"4-006c"),
 	REGULATOR_SUPPLY("cam_vaf",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vaf",		"4-0020"),
 	REGULATOR_SUPPLY("cam_vaf",		"4-0034"),
+#endif
 };
 VREG_CONSUMERS(L17) = {
 	REGULATOR_SUPPLY("8921_l17",		NULL),
@@ -115,7 +144,9 @@ VREG_CONSUMERS(L22) = {
 };
 VREG_CONSUMERS(L23) = {
 	REGULATOR_SUPPLY("8921_l23",		NULL),
+#if !defined(CONFIG_MACH_MSM8960_OSCAR)
 	REGULATOR_SUPPLY("dsi_vddio",		"mipi_dsi.1"),
+#endif
 	REGULATOR_SUPPLY("dsi_pll_vddio",	"mdp.0"),
 	REGULATOR_SUPPLY("hdmi_avdd",		"hdmi_msm.0"),
 	REGULATOR_SUPPLY("pll_vdd",		"pil_riva"),
@@ -147,6 +178,9 @@ VREG_CONSUMERS(L28) = {
 };
 VREG_CONSUMERS(L29) = {
 	REGULATOR_SUPPLY("8921_l29",		NULL),
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+	REGULATOR_SUPPLY("dsi_vddio",		"mipi_dsi.1"),
+#endif
 };
 VREG_CONSUMERS(S1) = {
 	REGULATOR_SUPPLY("8921_s1",		NULL),
@@ -215,14 +249,25 @@ VREG_CONSUMERS(LVS4) = {
 };
 VREG_CONSUMERS(LVS5) = {
 	REGULATOR_SUPPLY("8921_lvs5",		NULL),
+#ifdef CONFIG_PANTECH_CAMERA_OV8820
+    REGULATOR_SUPPLY("cam_vio",		"4-006c"),
+#endif
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC
+    REGULATOR_SUPPLY("cam_vio",		"4-0040"),
+#endif
+#ifndef CONFIG_PANTECH_CAMERA
 	REGULATOR_SUPPLY("cam_vio",		"4-001a"),
 	REGULATOR_SUPPLY("cam_vio",		"4-006c"),
 	REGULATOR_SUPPLY("cam_vio",		"4-0048"),
 	REGULATOR_SUPPLY("cam_vio",		"4-0020"),
 	REGULATOR_SUPPLY("cam_vio",		"4-0034"),
+#endif
 };
 VREG_CONSUMERS(LVS6) = {
 	REGULATOR_SUPPLY("8921_lvs6",		NULL),
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC
+    REGULATOR_SUPPLY("cam_iovdd",	"4-0040"),
+#endif
 	REGULATOR_SUPPLY("vdd_io",		"spi0.0"),
 };
 VREG_CONSUMERS(LVS7) = {
@@ -248,7 +293,9 @@ VREG_CONSUMERS(EXT_L2) = {
 VREG_CONSUMERS(EXT_3P3V) = {
 	REGULATOR_SUPPLY("ext_3p3v",		NULL),
 	REGULATOR_SUPPLY("vdd_ana",		"3-005b"),
+#ifndef CONFIG_PANTECH
 	REGULATOR_SUPPLY("vdd_lvds_3p3v",	"mipi_dsi.1"),
+#endif
 	REGULATOR_SUPPLY("mhl_usb_hs_switch",	"msm_otg"),
 };
 VREG_CONSUMERS(EXT_OTG_SW) = {
@@ -507,8 +554,13 @@ msm_pm8921_regulator_pdata[] __devinitdata = {
 		0, 2),
 	PM8XXX_NLDO1200(L28, "8921_l28", 0, 1, 375000, 1050000, 200, "8921_s7",
 		0, 3),
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+    PM8XXX_LDO(L29,      "8921_l29", 0, 1, 1800000, 1800000, 200, "8921_s8",
+        0, 4),
+#else
 	PM8XXX_LDO(L29,      "8921_l29", 0, 1, 2050000, 2100000, 200, "8921_s8",
 		0, 4),
+#endif
 
 	/*	     ID        name      always_on pd en_t supply    reg_ID */
 	PM8XXX_VS300(USB_OTG,  "8921_usb_otg",  0, 1, 0,   "ext_5v", 5),
@@ -533,15 +585,27 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L5,	 0, 1, 0, 2950000, 2950000, NULL,      0, 0),
 	RPM_LDO(L6,	 0, 1, 0, 2950000, 2950000, NULL,      0, 0),
 	RPM_LDO(L7,	 1, 1, 0, 1850000, 2950000, NULL,      10000, 10000),
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
+    RPM_LDO(L8,  0, 1, 0, 3000000, 3000000, NULL,      0, 0),
+#else
 	RPM_LDO(L8,	 0, 1, 0, 2800000, 3000000, NULL,      0, 0),
+#endif
 	RPM_LDO(L9,	 0, 1, 0, 3000000, 3000000, NULL,      0, 0),
 	RPM_LDO(L10,	 0, 1, 0, 3000000, 3000000, NULL,      0, 0),
+#ifndef CONFIG_PANTECH
 	RPM_LDO(L11,	 0, 1, 0, 2850000, 2850000, NULL,      0, 0),
+#else
+    RPM_LDO(L11,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
+#endif
 	RPM_LDO(L12,	 0, 1, 0, 1200000, 1200000, "8921_s4", 0, 0),
 	RPM_LDO(L14,	 0, 1, 0, 1800000, 1800000, NULL,      0, 0),
 	RPM_LDO(L15,	 0, 1, 0, 1800000, 2950000, NULL,      0, 0),
 	RPM_LDO(L16,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
+#ifdef CONFIG_PANTECH
+	RPM_LDO(L17,	 0, 1, 0, 3300000, 3300000, NULL,      0, 0),
+#else
 	RPM_LDO(L17,	 0, 1, 0, 1800000, 2950000, NULL,      0, 0),
+#endif
 	RPM_LDO(L18,	 0, 1, 0, 1300000, 1300000, "8921_s4", 0, 0),
 	RPM_LDO(L21,	 0, 1, 0, 1900000, 1900000, "8921_s8", 0, 0),
 	RPM_LDO(L22,	 0, 1, 0, 2750000, 2750000, NULL,      0, 0),
