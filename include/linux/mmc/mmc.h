@@ -331,6 +331,10 @@ struct _mmc_csd {
 #define EXT_CSD_MAX_PACKED_READS	501	/* RO */
 #define EXT_CSD_BKOPS_SUPPORT		502	/* RO */
 #define EXT_CSD_HPI_FEATURES		503	/* RO */
+#ifdef FEATURE_PANTECH_SAMSUNG_EMMC_BUG_FIX
+/* 20121221 LS1-JHM modified : enabling DISCARD for eMMC performance */
+#define EXT_CSD_VENDOR_SPECIFIC		64
+#endif
 
 /*
  * EXT_CSD field definitions

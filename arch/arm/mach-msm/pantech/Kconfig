@@ -15,6 +15,9 @@ config PANTECH
 config PANTECH_ERR_CRASH_LOGGING
 	bool
 
+config PANTECH_SDCARD_HIGH_VOLTAGE_FIX
+	bool
+
 config PANTECH_FS_AUTO_REPAIR
 	bool
 
@@ -34,6 +37,13 @@ config PANTECH_LEDS_PM8XXX
 	bool
 
 config PANTECH_VIBRATOR
+	bool
+
+# SD CARD
+config PANTECH_NO_EMMC_SDCARD
+	bool
+
+config PANTECH_MMC
 	bool
 
 config PANTECH_SND
