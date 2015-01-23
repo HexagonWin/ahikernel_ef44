@@ -261,7 +261,10 @@ void mdp4_dsi_video_vsync_ctrl(struct fb_info *info, int enable)
 	if (vctrl->vsync_irq_enabled == enable)
 		return;
 
+#ifndef CONFIG_PANTECH
+	//qcom debug message 
 	pr_debug("%s: vsync enable=%d\n", __func__, enable);
+#endif
 
 	vctrl->vsync_irq_enabled = enable;
 

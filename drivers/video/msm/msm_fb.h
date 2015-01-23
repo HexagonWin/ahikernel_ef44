@@ -46,6 +46,10 @@
 #include "msm_fb_panel.h"
 #include "mdp.h"
 
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+#define CONFIG_ACL_FOR_RECOVERY
+#endif
+
 #define MSM_FB_DEFAULT_PAGE_SIZE 2
 #define MFD_KEY  0x11161126
 #define MSM_FB_MAX_DEV_LIST 32

@@ -261,7 +261,11 @@ struct dsi_kickoff_action {
 
 #define CMD_REQ_MAX	4
 
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 typedef void (*fxn)(u32 data);
+#else
+typedef void (*fxn)(uint8 data);
+#endif
 
 #define CMD_REQ_RX	0x0001
 #define CMD_REQ_COMMIT	0x0002

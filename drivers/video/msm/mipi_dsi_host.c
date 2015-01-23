@@ -63,6 +63,9 @@ enum {
 };
 
 struct dcs_cmd_list	cmdlist;
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+extern int dma_ch;
+#endif
 
 #ifdef CONFIG_FB_MSM_MDP40
 void mipi_dsi_mdp_stat_inc(int which)
@@ -1453,7 +1456,12 @@ int mipi_dsi_cmd_dma_tx(struct dsi_buf *tp)
 	wmb();
 	spin_unlock_irqrestore(&dsi_mdp_lock, flags);
 
+/* LCD shinjg */
+#ifdef CONFIG_PANTECH
+    wait_for_completion_timeout(&dsi_dma_comp, msecs_to_jiffies(80)); // 10 -> 5 flick cursor
+#else
 	wait_for_completion(&dsi_dma_comp);
+#endif
 
 	dma_unmap_single(&dsi_dev, tp->dmap, tp->len, DMA_TO_DEVICE);
 	tp->dmap = 0;
@@ -1516,7 +1524,19 @@ void mipi_dsi_cmd_mdp_busy(void)
 		/* wait until DMA finishes the current job */
 		pr_debug("%s: pending pid=%d\n",
 				__func__, current->pid);
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+		if (dma_ch == 1) {
+			int ret;
+			ret = wait_for_completion_timeout(&dsi_mdp_comp,1*HZ/50);
+			if (ret == 0)
+				pr_err("wait_for_completion_timeout mfd->dma->comp\n");
+
+		} else {
+			wait_for_completion(&dsi_mdp_comp);wait_for_completion(&dsi_mdp_comp);wait_for_completion(&dsi_mdp_comp);
+		}
+#else
 		wait_for_completion(&dsi_mdp_comp);
+#endif
 	}
 	pr_debug("%s: done pid=%d\n",
 				__func__, current->pid);
@@ -1556,7 +1576,12 @@ void mipi_dsi_cmdlist_tx(struct dcs_cmd_req *req)
 void mipi_dsi_cmdlist_rx(struct dcs_cmd_req *req)
 {
 	int len;
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	u32 *dp;
+#else
+	uint8 *dp;
+	int i;
+#endif
 	struct dsi_buf *tp;
 	struct dsi_buf *rp;
 
@@ -1567,17 +1592,27 @@ void mipi_dsi_cmdlist_rx(struct dcs_cmd_req *req)
 	rp = &dsi_rx_buf;
 
 	len = mipi_dsi_cmds_rx_new(tp, rp, req, req->rlen);
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	dp = (u32 *)rp->data;
 
 	if (req->cb)
 		req->cb(*dp);
+#else
+	for(i = 0; i < req->rlen; i++){
+		dp = ((uint8 *)rp->data++);
+		if (req->cb)
+			req->cb(*dp);
+}
+#endif
 }
 
 void mipi_dsi_cmdlist_commit(int from_mdp)
 {
 	struct dcs_cmd_req *req;
 	u32 dsi_ctrl;
-
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+	int video;
+#endif
 	mutex_lock(&cmd_mutex);
 	req = mipi_dsi_cmdlist_get();
 
@@ -1586,6 +1621,13 @@ void mipi_dsi_cmdlist_commit(int from_mdp)
 
 	if (req == NULL)
 		goto need_lock;
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+	video = MIPI_INP(MIPI_DSI_BASE + 0x0000);
+	video &= 0x02; /* VIDEO_MODE */
+
+	if (!video)
+		mipi_dsi_clk_cfg(1);
+#endif
 
 	pr_debug("%s:  from_mdp=%d pid=%d\n", __func__, from_mdp, current->pid);
 
@@ -1607,7 +1649,10 @@ void mipi_dsi_cmdlist_commit(int from_mdp)
 		mipi_dsi_cmdlist_rx(req);
 	else
 		mipi_dsi_cmdlist_tx(req);
-
+#ifdef CONFIG_MACH_MSM8960_OSCAR
+	if (!video)
+		mipi_dsi_clk_cfg(0);
+#endif
 need_lock:
 
 	if (from_mdp) /* from pipe_commit */
@@ -1640,16 +1685,16 @@ int mipi_dsi_cmdlist_put(struct dcs_cmd_req *cmdreq)
 	ret++;
 	pr_debug("%s: tot=%d put=%d get=%d\n", __func__,
 		cmdlist.tot, cmdlist.put, cmdlist.get);
-
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	if (req->flags & CMD_CLK_CTRL)
 		mipi_dsi_clk_cfg(1);
-
+#endif
 	if (req->flags & CMD_REQ_COMMIT)
 		mipi_dsi_cmdlist_commit(0);
-
+#ifndef CONFIG_MACH_MSM8960_OSCAR
 	if (req->flags & CMD_CLK_CTRL)
 		mipi_dsi_clk_cfg(0);
-
+#endif
 	return ret;
 }
 

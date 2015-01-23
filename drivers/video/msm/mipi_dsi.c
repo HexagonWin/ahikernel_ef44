@@ -39,6 +39,9 @@ u32 dsi_irq;
 u32 esc_byte_ratio;
 
 static boolean tlmm_settings = FALSE;
+#ifdef CONFIG_F_SKYDISP_SILENT_BOOT //silent boot p13832@shji 	
+extern int backlight_value;
+#endif
 
 static int mipi_dsi_probe(struct platform_device *pdev);
 static int mipi_dsi_remove(struct platform_device *pdev);
@@ -134,7 +137,9 @@ static int mipi_dsi_off(struct platform_device *pdev)
 
 	return ret;
 }
-
+#if defined(CONFIG_F_SKYDISP_CONT_SPLASH_DISP)
+static int first_enable = 0;
+#endif
 static int mipi_dsi_on(struct platform_device *pdev)
 {
 	int ret = 0;
@@ -156,7 +161,13 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	var = &fbi->var;
 	pinfo = &mfd->panel_info;
 	esc_byte_ratio = pinfo->mipi.esc_byte_ratio;
-
+#if defined(CONFIG_F_SKYDISP_CONT_SPLASH_DISP)
+    if (mipi_dsi_pdata && mipi_dsi_pdata->dsi_power_save && (first_enable ==0)) {
+        mipi_dsi_pdata->dsi_power_save(0);
+        first_enable=1;
+        mdelay(30);
+    }
+#endif
 	if (mipi_dsi_pdata && mipi_dsi_pdata->dsi_power_save)
 		mipi_dsi_pdata->dsi_power_save(1);
 
@@ -246,7 +257,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	}
 
 	mipi_dsi_host_init(mipi);
-
+#ifndef CONFIG_PANTECH
 	if (mipi->force_clk_lane_hs) {
 		u32 tmp;
 
@@ -255,13 +266,22 @@ static int mipi_dsi_on(struct platform_device *pdev)
 		MIPI_OUTP(MIPI_DSI_BASE + 0xA8, tmp);
 		wmb();
 	}
+#endif
 
 	if (mdp_rev >= MDP_REV_41)
 		mutex_lock(&mfd->dma->ov_mutex);
 	else
 		down(&mfd->dma->mutex);
 
+#ifdef CONFIG_F_SKYDISP_SILENT_BOOT //silent boot p13832@shji
+	if (backlight_value) {
+		printk("########## First booting = \n");
+	} else {
+		ret = panel_next_on(pdev);
+	}
+#else
 	ret = panel_next_on(pdev);
+#endif
 
 	mipi_dsi_op_mode_config(mipi->mode);
 
