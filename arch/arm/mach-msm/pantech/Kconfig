@@ -1,0 +1,11 @@
+if CUST_PANTECH_H
+
+#
+# Pantech Cust feature section
+#
+menu "Pantech Cust Feature Section"
+
+
+endmenu # PANTECH Cust feature section
+
+endif # CUST_PANTECH_H
