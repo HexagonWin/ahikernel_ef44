@@ -925,6 +925,13 @@ static ssize_t fsg_store_file(struct device *dev, struct device_attribute *attr,
 	int		rc = 0;
 
 
+/*
+ * pooyi 20120329 
+ * when ICS UMS turn off, this code return BUSY, it make a turn off problem
+ * GB and HC is not used this code.
+ * ICS version blocked this code.
+ */
+#if !defined(CONFIG_ANDROID_PANTECH_USB)
 #ifndef CONFIG_USB_ANDROID_MASS_STORAGE
 	/* disabled in android because we need to allow closing the backing file
 	 * if the media was removed
@@ -934,6 +941,7 @@ static ssize_t fsg_store_file(struct device *dev, struct device_attribute *attr,
 		return -EBUSY;				/* "Door is locked" */
 	}
 #endif
+#endif /* CONFIG_ANDROID_PANTECH_USB */
 
 	/* Remove a trailing newline */
 	if (count > 0 && buf[count-1] == '\n')

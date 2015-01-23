@@ -75,6 +75,56 @@ config PANTECH_CHARGER_OFFLINE
 config PANTECH_CHARGER_WIRELESS
 	bool
 
+# PANTECH USB Drivers #
+config ANDROID_PANTECH_USB
+	bool "PANTECH USB"
+	default y
+	help
+	  Support Pantech USB
+
+config ANDROID_PANTECH_USB_MANAGER
+	depends on ANDROID_PANTECH_USB
+	bool "PANTECH USB Manager"
+	default y
+	help
+	  Support Pantech USB Manager
+
+config ANDROID_PANTECH_USB_CDFREE
+	depends on ANDROID_PANTECH_USB && PANTECH_VERIZON
+	bool "PANTECH USB Cdfree"
+	default y
+	help
+	  Support Pantech USB Cdfree
+
+config ANDROID_PANTECH_USB_FACTORY_CABLE
+	depends on ANDROID_PANTECH_USB
+	bool "PANTECH USB FACTORY CABLE"
+	default y
+	help
+	  Support Pantech USB
+
+config ANDROID_PANTECH_USB_OTG_INTENT
+	depends on ANDROID_PANTECH_USB
+	bool "PANTECH USB OTG Intent"
+	default n
+	help
+	  Support Pantech USB OTG Intent
+
+config ANDROID_PANTECH_USB_OTG_CHARGER_SUSPEND
+	depends on ANDROID_PANTECH_USB
+	bool "PANTECH USB OTG Charger suspend"
+	default n
+	help
+	  Support Pantech USB OTG Intent
+
+config ANDROID_PANTECH_USB_ABNORMAL_CHARGER_INFO
+	depends on ANDROID_PANTECH_USB
+	bool "PANTECH USB Charger cable abnormal case"
+	default n
+	help
+	  Support Pantech USB
+
+# PANTECH SOUND
 config PANTECH_SND
 	bool "PANTECH SOUND CONFIGS"
 	default n
