@@ -785,6 +785,14 @@ config MACH_MSM8960_MAGNUS
 	help
 	  Support for the Qualcomm MSM8960 MAGNUS device.
 
+config MACH_MSM8960_EF44S
+	depends on ARCH_MSM8960
+	bool "MSM8960 EF44S"
+	default n
+	select CUST_PANTECH_H
+	help
+	  Support for the Qualcomm MSM8960 EF44S device.
+
 config MACH_MSM8960_OSCAR
 	depends on ARCH_MSM8960
 	bool "MSM8960 OSCAR"

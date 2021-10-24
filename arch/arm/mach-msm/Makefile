@@ -27,6 +27,18 @@ CLOCK_OBJ_NAME:=pantech/magnus/clock-magnus.o
 DEVICES_OBJ_NAME:=pantech/magnus/devices-magnus.o
 endif
 
+# Pantech VEGA S5 (ef44s) names
+ifdef CONFIG_MACH_MSM8960_EF44S
+BOARD_OBJ_NAME:=pantech/ef44s/board-ef44s.o
+BOARD_CAMERA_OBJ_NAME:=pantech/ef44s/board-ef44s-camera.o
+BOARD_DISPLAY_OBJ_NAME:=pantech/ef44s/board-ef44s-display.o
+BOARD_GPIOMUX_OBJ_NAME:=pantech/ef44s/board-ef44s-gpiomux.o
+BOARD_PMIC_OBJ_NAME:=pantech/ef44s/board-ef44s-pmic.o
+BOARD_REGULATOR_OBJ_NAME:=pantech/ef44s/board-ef44s-regulator.o
+CLOCK_OBJ_NAME:=pantech/ef44s/clock-ef44s.o
+DEVICES_OBJ_NAME:=pantech/ef44s/devices-ef44s.o
+endif
+
 # Pantech Flex (oscar) names
 ifdef CONFIG_MACH_MSM8960_OSCAR
 BOARD_OBJ_NAME:=pantech/oscar/board-oscar.o

@@ -15,6 +15,36 @@ config PANTECH
 config PANTECH_ATNT
 	bool
 
+if MACH_MSM8960_EF44S
+config DEFINE_LIST_EF44S
+	bool
+	default y
+	select PANTECH_DOMESTIC
+#	select PANTECH_SDCARD
+#	select F_SKYDISP_QBUG_FIX_BACKLIGHT
+	select F_SKYDISP_BOOT_LOGO_IN_KERNEL
+	select F_SKYDISP_NO_CURSOR_IN_BOOT
+	select F_SKYDISP_LCD_RESET
+	select F_SKYDISP_LCD_FORCE_ONOFF
+	select F_SKYDISP_FORCE_ENCRYPTION_OFF
+	select PANTECH_LCD_POWEROFFSEQ_ON_PHONEOFF	
+	select PANTECH_PMIC
+	select PANTECH_PMIC_PWRKEY
+	select PANTECH_PMIC_RESET_REASON
+	select PANTECH_BMS
+	select PANTECH_CHARGER
+	select PANTECH_PMIC_MAX17058
+	select PANTECH_ERR_CRASH_LOGGING
+	select PANTECH_SDCARD_HIGH_VOLTAGE_FIX
+	select PANTECH_FS_AUTO_REPAIR
+	select BRCM_BT
+	select ANDROID_PANTECH_USB_OTG_INTENT
+	select ANDROID_PANTECH_USB_OTG_CHARGER_SUSPEND
+	select ANDROID_PANTECH_USB_ABNORMAL_CHARGER_INFO
+	select PANTECH_WLAN_BRCM
+	select PANTECH_MMC
+endif
+
 if MACH_MSM8960_OSCAR
 config DEFINE_LIST_OSCAR
 	bool
@@ -224,6 +254,33 @@ config PANTECH_SND
 config PANTECH_GPIO_SLEEP_CONFIG
 	bool "PANTECH GPIO SLEEP CONFIG"
 	default y
+
+config BRCM_BT
+	bool "BRCM BT CONFIG"
+	default y    
+        help
+            Support Broadcom bluetooth configs       
+ 
+config PANTECH_WLAN_BRCM
+	bool "Broadcom BCM4334 driver"
+	depends on ARCH_MSM8960 && !WCNSS_CORE
+	select MMC_MSM_SDC4_SUPPORT
+	#select BCMDHD
+	#select WIRELESS_EXT
+	select SKY_WLAN_MMC
+	select SKY_PANMAC
+	#select KSKY_RAWDATA
+	---help---
+	  Broadcom driver for connectivity system
+
+config SKY_WLAN_MMC
+	bool		
+
+config SKY_PANMAC
+	bool "Device file for accessing MAC"
+
+config KSKY_RAWDATA
+	bool "sky_rawdata facility for kernel space"
 
 endmenu # PANTECH Cust feature section
 
