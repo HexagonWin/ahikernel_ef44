@@ -75,6 +75,7 @@ msm_mipi-objs := mipi_dsi.o mipi_dsi_host.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI) += msm_mipi.o
 
 # MIPI manufacture
+obj-$(CONFIG_FB_MSM_MIPI_DSI_SONY_WM) += mipi_sony_wm.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI_ROHM) += mipi_rohm.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI_SAMSUNG_OCTA) += mipi_samsung_octa.o
 obj-$(CONFIG_FB_MSM_MIPI_DSI_TOSHIBA) += mipi_toshiba.o
@@ -131,6 +132,7 @@ obj-y += mipi_chimei_wxga_pt.o
 obj-y += mipi_chimei_wuxga.o
 obj-y += mipi_truly_video_wvga_pt.o
 else
+obj-$(CONFIG_FB_MSM_MIPI_SONY_WM_VIDEO_HD) += mipi_sony_wm_video_hd.o
 obj-$(CONFIG_FB_MSM_MIPI_ROHM_VIDEO_HD) += mipi_rohm_video_hd.o
 obj-$(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_QHD) += mipi_samsung_octa_video_qhd.o
 obj-$(CONFIG_FB_MSM_MIPI_TOSHIBA_VIDEO_WVGA_PT) += mipi_toshiba_video_wvga_pt.o
