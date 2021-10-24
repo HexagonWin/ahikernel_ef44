@@ -54,13 +54,22 @@ obj-$(CONFIG_BATTERY_BQ27520)	+= bq27520_fuelgauger.o
 obj-$(CONFIG_BATTERY_BQ27541)	+= bq27541_fuelgauger.o
 obj-$(CONFIG_SMB137B_CHARGER)   += smb137b.o
 obj-$(CONFIG_PM8XXX_CCADC)	+= pm8xxx-ccadc.o
-ifeq ($(CONFIG_MACH_MSM8960_OSCAR),y)
-    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-bms-oscar.o
+
+# TEMP : Convert to EF44
+#ifeq ($(CONFIG_MACH_MSM8960_OSCAR),y)
+#    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-bms-oscar.o
+
+ifeq ($(CONFIG_MACH_MSM8960_EF44S),y)
+    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-bms-ef44s.o
 else
     obj-$(CONFIG_PM8921_BMS)	+= pm8921-bms.o
 endif
-ifeq ($(CONFIG_MACH_MSM8960_OSCAR),y)
-    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-charger-oscar.o
+
+#ifeq ($(CONFIG_MACH_MSM8960_OSCAR),y)
+#    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-charger-oscar.o
+
+ifeq ($(CONFIG_MACH_MSM8960_EF44S),y)
+    obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-charger-ef44s.o
 else
     obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-charger.o
 endif

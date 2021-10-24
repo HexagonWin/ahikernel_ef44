@@ -49,12 +49,14 @@
 #define YACD5C1SBDBC_PREVIEW_FPS_PARM 42//57//54//
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 #define YACD5C1SBDBC_PREVIEW_FPS_PARM 45//42//57//54//
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+#define YACD5C1SBDBC_PREVIEW_FPS_PARM 45//42//57//54//
 #endif
-#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR))
+#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
 #define YACD5C1SBDBC_PREVIEW_24FPS_PARM 116//243
 #endif
 #define YACD5C1SBDBC_REFLECT_PARM 2
-#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR))
+#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
 #define YACD5C1SBDBC_CHECK_ZSL_PARM 4
 #endif
 #endif /* CONFIG_PANTECH_CAMERA */
@@ -122,13 +124,13 @@ struct msm_sensor_reg_t {
 	uint8_t wb_cfg_settings_size;
 	struct msm_camera_i2c_reg_conf (*preview_fps_cfg_settings)[YACD5C1SBDBC_PREVIEW_FPS_PARM];
 	uint8_t preview_fps_cfg_settings_size;
-#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR))
+#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
 	struct msm_camera_i2c_reg_conf (*preview_24fps_for_motion_detect_cfg_settings)[YACD5C1SBDBC_PREVIEW_24FPS_PARM];
 	uint16_t preview_24fps_for_motion_detect_cfg_settings_size;
 #endif
 	struct msm_camera_i2c_reg_conf (*reflect_cfg_settings)[YACD5C1SBDBC_REFLECT_PARM];
 	uint8_t reflect_cfg_settings_size;
-#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR))
+#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
 	struct msm_camera_i2c_reg_conf (*checkzsl_cfg_settings)[YACD5C1SBDBC_CHECK_ZSL_PARM];
 	uint8_t checkzsl_cfg_settings_size;
 #endif
@@ -202,18 +204,20 @@ struct msm_sensor_fn_t {
 	int (*sensor_set_antishake) (struct msm_sensor_ctrl_t *, int8_t);
 	int (*sensor_set_led_mode) (struct msm_sensor_ctrl_t *, int8_t);
 	int (*sensor_check_af) (struct msm_sensor_ctrl_t *, int8_t);
-#if defined(CONFIG_MACH_MSM8960_OSCAR)
-	int (*sensor_set_coninuous_af) (struct msm_sensor_ctrl_t *, int8_t);
+#if defined(CONFIG_MACH_MSM8960_OSCAR)//coninuous => continuous. Isn't this right?
+	int (*sensor_set_continuous_af) (struct msm_sensor_ctrl_t *, int8_t);
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 	int (*sensor_set_continuous_af) (struct msm_sensor_ctrl_t *, int8_t);
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+        int (*sensor_set_continuous_af) (struct msm_sensor_ctrl_t *, int8_t);
 #endif
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS))
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	int (*sensor_set_focus_rect) (struct msm_sensor_ctrl_t *, int32_t, int8_t * f_info);
 #endif
 	int (*sensor_set_hdr) (struct msm_sensor_ctrl_t *);
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	int (*sensor_set_metering_area) (struct msm_sensor_ctrl_t *, int32_t,int8_t *);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	int (*sensor_set_metering_area) (struct msm_sensor_ctrl_t *, int32_t, int8_t * f_info);
 #endif
 #if defined(CONFIG_MACH_MSM8960_MAGNUS)
@@ -227,7 +231,7 @@ struct msm_sensor_fn_t {
 	int (*sensor_get_frame_info) (struct msm_sensor_ctrl_t *, void __user *argp, int8_t *);
 	int (*sensor_lens_stability) (struct msm_sensor_ctrl_t *);
 	int (*sensor_get_eeprom_data) (struct msm_sensor_ctrl_t *, struct sensor_cfg_data *);//void *);//eeprom
-#if defined(CONFIG_MACH_MSM8960_MAGNUS)
+#if (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	int (*sensor_set_focus_mode) (struct msm_sensor_ctrl_t *, int8_t); //FOCUS_MODE
 #endif
 #endif /* CONFIG_PANTECH_CAMERA */

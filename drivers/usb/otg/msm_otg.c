@@ -3529,7 +3529,7 @@ int set_otg_host_state(int mode)
 	else if (mode == 2)
 		switch_set_state(&motg->sdev_otg, 2);
 	else
-		return -1;	
+		return -1;
 
 	return 0;
 
@@ -3555,7 +3555,7 @@ int set_otg_dev_state(int mode)
 	} else if (mode == 1) {
 		switch_set_state(&motg->sdev_otg_dev, 1);
 	} else {
-		return -1;	
+		return -1;
 	}
 
 	return 0;

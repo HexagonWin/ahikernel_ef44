@@ -65,14 +65,15 @@
 //-----------------------------------------------------------------//
 
 #ifdef CONFIG_PANTECH_SND // kdkim for MBHC with GPIO(MSM GPIO)
-#if defined(T_OSCAR) 
+#if defined(T_OSCAR)
 #define JACK_DETECT_GPIO 35
 #define JACK_DETECT_INT MSM_GPIO_TO_INT(JACK_DETECT_GPIO)
-#endif /* T_OSCAR */
+//#endif /* T_OSCAR */
 #else /* QCOM original */
 #define JACK_DETECT_GPIO 38
 #define JACK_DETECT_INT PM8921_GPIO_IRQ(PM8921_IRQ_BASE, JACK_DETECT_GPIO)
 #endif /* CONFIG_PANTECH_SND */
+#endif//test
 #define JACK_US_EURO_SEL_GPIO 35
 
 static u32 top_spk_pamp_gpio  = PM8921_GPIO_PM_TO_SYS(18);

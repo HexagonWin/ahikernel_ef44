@@ -22,6 +22,8 @@
 #include "yacd5c1sbdbc_v4l2_cfg_magnus.h"
 #elif defined(CONFIG_MACH_MSM8960_OSCAR)
 #include "yacd5c1sbdbc_v4l2_cfg_oscar.h"
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+#include "yacd5c1sbdbc_v4l2_cfg_ef44s.h"
 #endif
 
 #include "msm_camera_i2c.h"
@@ -68,13 +70,15 @@ static int8_t g_preview_fps;
 #define CAMIO_MAX	3
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 #define CAMIO_MAX	2
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+#define CAMIO_MAX	2
 #endif
 
 #define CAM2_STANDBY     52 //54
 #define CAM2_RST_N         76 //107
 #define CAM1_IOVDD		77
 
-#if defined(CONFIG_MACH_MSM8960_OSCAR)
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
 static int8_t g_preview_fps;
 #endif
 static int yacd5c1sbdbc_sensor_set_preview_fps(struct msm_sensor_ctrl_t *s_ctrl ,int8_t preview_fps);
@@ -204,6 +208,8 @@ static struct msm_camera_csi2_params yacd5c1sbdbc_csi_params = {
 			.num_cid = ARRAY_SIZE(yacd5c1sbdbc_cid_cfg),//2,
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 			.num_cid = 2,
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+			.num_cid = 2,
 #endif
 			.vc_cfg = yacd5c1sbdbc_cid_cfg,
 		},
@@ -286,7 +292,7 @@ static int yacd5c1sbdbc_vreg_init(void)
 	int rc = 0;
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s:%d\n", __func__, __LINE__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s:%d\n", __func__, __LINE__);
 #endif
 
@@ -314,7 +320,7 @@ int32_t yacd5c1sbdbc_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 	int32_t rc = 0;
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s: %d\n", __func__, __LINE__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s: %d\n", __func__, __LINE__);
 #endif
 
@@ -327,7 +333,7 @@ int32_t yacd5c1sbdbc_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
     rc = msm_sensor_power_up(s_ctrl);
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
     pr_err(" %s : msm_sensor_power_up : rc = %d E\n",__func__, rc);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
     SKYCDBG(" %s : msm_sensor_power_up : rc = %d E\n",__func__, rc);
 #endif /* CONFIG_MACH_MSM8960_MAGNUS */
 #endif
@@ -352,7 +358,7 @@ int32_t yacd5c1sbdbc_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s X (%d)\n", __func__, rc);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s X (%d)\n", __func__, rc);
 #endif
 	return rc;
@@ -363,7 +369,7 @@ int32_t yacd5c1sbdbc_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
     int32_t rc = 0;
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s\n", __func__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s\n", __func__);
 #endif
 
@@ -385,7 +391,7 @@ int32_t yacd5c1sbdbc_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
     msm_sensor_power_down(s_ctrl);
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
     pr_err(" %s : msm_sensor_power_down : rc = %d E\n",__func__, rc);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
     SKYCDBG(" %s : msm_sensor_power_down : rc = %d E\n",__func__, rc);
 #endif
 #endif
@@ -408,7 +414,7 @@ int32_t yacd5c1sbdbc_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 #endif
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s X (%d)\n", __func__, rc);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s X (%d)\n", __func__, rc);
 #endif
 	return rc;
@@ -422,7 +428,7 @@ int32_t yacd5c1sbdbc_sensor_set_fps(struct msm_sensor_ctrl_t *s_ctrl,
 	int32_t rc = 0;
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s: %d\n", __func__, __LINE__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s: %d\n", __func__, __LINE__);
 #endif
 #if 0
@@ -447,7 +453,7 @@ int32_t yacd5c1sbdbc_sensor_write_init_settings(struct msm_sensor_ctrl_t *s_ctrl
     {
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
         pr_err("[CONFIG_PANTECH_CAMERA_TUNER] %s\n",__func__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
         SKYCDBG("[CONFIG_PANTECH_CAMERA_TUNER] %s\n",__func__);
 #endif
         tuner_data_type = s_ctrl->msm_sensor_reg->default_data_type;
@@ -484,7 +490,7 @@ int32_t yacd5c1sbdbc_sensor_write_res_settings(struct msm_sensor_ctrl_t *s_ctrl,
 	 SKYCDBG("%s: mode = %d E\n", __func__, res);
 #endif
 
-#if defined(CONFIG_MACH_MSM8960_OSCAR)
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_EF44S))
     if(res == 0) {
         pr_err("%s:[F_PANTECH_CAMERA] Write reg [AE, AWB Off SET]\n", __func__);
         rc = msm_camera_i2c_write_tbl(
@@ -521,7 +527,7 @@ int32_t yacd5c1sbdbc_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
     pr_err("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,res);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,res);
 #endif
 
@@ -531,14 +537,14 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
 	msleep(30);
 	if (update_type == MSM_SENSOR_REG_INIT) {
 		s_ctrl->curr_csi_params = NULL;
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS))
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 		g_preview_fps= 0;
 #endif
 		msm_sensor_enable_debugfs(s_ctrl);
 #ifdef CONFIG_PANTECH_CAMERA_TUNER
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
         pr_err("[CONFIG_PANTECH_CAMERA_TUNER]%s PASS init_setting\n ",__func__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
         SKYCDBG("[CONFIG_PANTECH_CAMERA_TUNER]%s PASS init_setting\n ",__func__);
 #endif
         tuner_init_check = 1;
@@ -552,7 +558,7 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
         if (tuner_init_check == 1) {
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
             pr_err("[CONFIG_PANTECH_CAMERA_TUNER]%s init_setting\n ",__func__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
             SKYCDBG("[CONFIG_PANTECH_CAMERA_TUNER]%s init_setting\n ",__func__);
 #endif
             yacd5c1sbdbc_sensor_write_init_settings(s_ctrl);
@@ -561,7 +567,7 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
         pr_err("[CONFIG_PANTECH_CAMERA_TUNER]%s res=%d res_setting\n ",__func__,res);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
         SKYCDBG("[CONFIG_PANTECH_CAMERA_TUNER]%s res=%d res_setting\n ",__func__,res);
 #endif
         yacd5c1sbdbc_sensor_write_res_settings(s_ctrl, res);
@@ -569,7 +575,8 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
         yacd5c1sbdbc_sensor_write_res_settings(s_ctrl, res);
 #endif
 
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS)) // for VTS
+//#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS)) // for VTS
+#ifdef CONFIG_PANTECH_CAMERA_YACD5C1SBDBC// for VTS
         //if (strcmp(s_ctrl->sensordata->sensor_name, "yacd5c1sbdbc"))
 /*
         if((s_ctrl->sensor_id_info->sensor_id == YACD5C1SBDBC_ID) &&
@@ -581,7 +588,11 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
             //printk("[CONFIG_PANTECH_CAMERA for VTS] msleep(133)==>\n");
             //msleep(133);
 
+#if defined(CONFIG_MACH_MSM8960_OSCAR)
             pr_err("[CONFIG_PANTECH_CAMERA for VTS]preview_24fps_for_motion_detect_cfg_settings\n ");
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
+            SKYCDBG("[CONFIG_PANTECH_CAMERA for VTS]preview_24fps_for_motion_detect_cfg_settings\n ");
+#endif
 
             rc = msm_camera_i2c_write_tbl(
                 s_ctrl->sensor_i2c_client,
@@ -608,6 +619,8 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
 			pr_err("%s:[F_PANTECH_CAMERA] ==> MIPI setting  E %d\n", __func__, update_type);
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 			SKYCDBG("%s:[F_PANTECH_CAMERA] ==> MIPI setting  E %d\n", __func__, update_type);
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+SKYCDBG("%s:[F_PANTECH_CAMERA] ==> MIPI setting  E %d\n", __func__, update_type);
 #endif
 			s_ctrl->curr_csi_params = s_ctrl->csi_params[res];
 			s_ctrl->curr_csi_params->csid_params.lane_assign =
@@ -633,6 +646,8 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
 			pr_err("%s:[F_PANTECH_CAMERA] ==> MIPI setting  X %d\n", __func__, update_type);
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 			SKYCDBG("%s:[F_PANTECH_CAMERA] ==> MIPI setting  X %d\n", __func__, update_type);
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+SKYCDBG("%s:[F_PANTECH_CAMERA] ==> MIPI setting X %d\n", __func__, update_type);
 #endif
 		}
 
@@ -656,7 +671,7 @@ SKYCDBG("%s:[F_PANTECH_CAMERA] %d, %d res=%d\n", __func__, __LINE__,update_type,
 	}
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s: %d x\n", __func__, __LINE__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s: %d x\n", __func__, __LINE__);
 #endif
 	return rc;
@@ -672,7 +687,7 @@ static int yacd5c1sbdbc_sensor_set_tuner(struct tuner_cfg tuner)
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s fbuf=%p, fsize=%d\n", __func__, tuner.fbuf, tuner.fsize);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s fbuf=%p, fsize=%d\n", __func__, tuner.fbuf, tuner.fsize);
 #endif
 
@@ -706,7 +721,7 @@ static int yacd5c1sbdbc_sensor_set_tuner(struct tuner_cfg tuner)
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	pr_err("%s X\n", __func__);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s X\n", __func__);
 #endif
 	return 0;
@@ -801,14 +816,14 @@ static int yacd5c1sbdbc_sensor_set_wb(struct msm_sensor_ctrl_t *s_ctrl ,int8_t w
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	CDBG("%s wb=%d start \n",__func__,wb);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s wb=%d start \n",__func__,wb); //SKYCDBG
 #endif
 
 	if(wb < 0 || wb > 6){
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 		CDBG("%s error. wb=%d\n", __func__, wb);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 		SKYCERR("%s error. wb=%d\n", __func__, wb); //SKYCERR
 #endif
 		return -EINVAL;
@@ -830,14 +845,14 @@ static int yacd5c1sbdbc_sensor_set_wb(struct msm_sensor_ctrl_t *s_ctrl ,int8_t w
 	return rc;
 }
 
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS))
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 static int yacd5c1sbdbc_sensor_set_preview_fps(struct msm_sensor_ctrl_t *s_ctrl ,int8_t preview_fps)
 {
 	int rc = 0;
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 	CDBG("%s preview_fps=%d start \n",__func__,preview_fps);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 	SKYCDBG("%s preview_fps=%d start \n",__func__,preview_fps);
 #endif
 
@@ -1046,13 +1061,13 @@ static struct msm_sensor_reg_t yacd5c1sbdbc_regs = {
     .wb_cfg_settings_size = ARRAY_SIZE(yacd5c1sbdbc_cfg_wb[0]),
     .preview_fps_cfg_settings = &yacd5c1sbdbc_cfg_preview_fps[0],
     .preview_fps_cfg_settings_size = ARRAY_SIZE(yacd5c1sbdbc_cfg_preview_fps[0]),
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS))
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
     .preview_24fps_for_motion_detect_cfg_settings = &yacd5c1sbdbc_cfg_preview_24fps_for_motion_detect[0],
     .preview_24fps_for_motion_detect_cfg_settings_size = ARRAY_SIZE(yacd5c1sbdbc_cfg_preview_24fps_for_motion_detect[0]),
 #endif
     .reflect_cfg_settings = &yacd5c1sbdbc_cfg_reflect[0],
     .reflect_cfg_settings_size = ARRAY_SIZE(yacd5c1sbdbc_cfg_reflect[0]),
-#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS))
+#if (defined(CONFIG_MACH_MSM8960_OSCAR) || defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
     .checkzsl_cfg_settings = &yacd5c1sbdbc_cfg_checkzsl[0],
     .checkzsl_cfg_settings_size = ARRAY_SIZE(yacd5c1sbdbc_cfg_checkzsl[0]),
 #endif
@@ -1080,7 +1095,7 @@ static struct msm_sensor_ctrl_t yacd5c1sbdbc_s_ctrl = {
 
 #if defined(CONFIG_MACH_MSM8960_OSCAR)
 module_init(msm_sensor_init_module);
-#elif defined(CONFIG_MACH_MSM8960_MAGNUS)
+#elif (defined(CONFIG_MACH_MSM8960_MAGNUS) || defined(CONFIG_MACH_MSM8960_EF44S))
 late_initcall(msm_sensor_init_module);
 #endif
 MODULE_DESCRIPTION("Hynix 2MP YUV sensor driver");

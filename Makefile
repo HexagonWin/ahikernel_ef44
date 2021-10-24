@@ -344,14 +344,10 @@ DEPMOD		= /sbin/depmod
 KALLSYMS	= scripts/kallsyms
 PERL		= perl
 CHECK		= sparse
-# FOR MOCANA MODULE BUILD FIPS
-ifeq ($(MOC_MODULE_BUILD),yes)
-CC	= $(CROSS_COMPILE)gcc
-else
+
 # Use the wrapper for the compiler.  This wrapper scans for new
 # warnings and causes the build to stop upon encountering them.
 CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
-endif
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
@@ -376,12 +372,14 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
+		   -Wno-maybe-uninitialized \
+		   -Wno-unused-variable \
 		   -fno-delete-null-pointer-checks
 
-#// 20120105, albatros, imei �ּҰ��� ������� ����� ���ؼ�
-ifeq ($(OEM_PRODUCT_MANUFACTURER),PANTECH)
-LINUXINCLUDE += -I$(srctree)/../pantech/frameworks/sky_rawdata
-endif
+
+$(info "======================LINUX INCLUDE===========================================================")
+$(info $(LINUXINCLUDE))
+$(info "==============================================================================================")
 
 ######################################################################
 # PANTECH_ANDROID_FLAGS
@@ -391,15 +389,21 @@ endif
 #----------------------------------------------------------------------
 PANTECH_ANDROID_FLAGS := -DFEATURE_AARM_RELEASE_MODE \
 		   -I$(srctree)/include \
-		   -DT_OSCAR -I$(srctree)/include/pantech \
-		   -include $(srctree)/include/pantech/CUST_PANTECH.h \
-		   -DFIRM_VER=\"p8010.D1\" -DSYS_MODEL_NAME=\"OSCAR\" \
-		   -DPANTECH_MODEL_NAME=\"P8010\" \
-		   -DFS_USER_DATA_VER=8 \
-		   -DPANTECH_STORAGE_INTERNAL_EMUL
+		   -DT_EF44S -I$(srctree)/include/pantech \
+                   -include $(srctree)/include/pantech/CUST_PANTECH.h \
+                   -DFIRM_VER=\"S0220215\" \
+                   -DSYS_MODEL_NAME=\"EF44S\" \
+                   -DPANTECH_MODEL_NAME=\"IM-A840S\" \
+                   -DSYS_PROJECT_NAME=\"EF44S\" \
+                   -DFS_USER_DATA_VER=37 \
+                   -DPANTECH_STORAGE_INTERNAL_EMUL \
+                   -DFEATURE_AARM_RELEASE_MOD
 
-KBUILD_CFLAGS += $(PANTECH_ANDROID_FLAGS) -D__KERNELBUILD__
-
+KBUILD_CFLAGS   += $(PANTECH_ANDROID_FLAGS) -D__KERNELBUILD__
+#----------------------------------------------------------------------
+$(info "KERNEL ======================================================================================")
+$(info $(KBUILD_CFLAGS))
+$(info "==============================================================================================")
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -597,9 +601,9 @@ endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
-ifneq ($(CONFIG_FRAME_WARN),0)
-KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
-endif
+#ifneq ($(CONFIG_FRAME_WARN),0)
+#KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
+#endif
 
 # Force gcc to behave correct even for buggy distributions
 ifndef CONFIG_CC_STACKPROTECTOR

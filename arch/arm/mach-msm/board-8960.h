@@ -96,9 +96,9 @@ void msm8960_mdp_writeback(struct memtype_reserve *reserve_table);
 #define MSM_8960_GSBI3_QUP_I2C_BUS_ID 3
 #define MSM_8960_GSBI10_QUP_I2C_BUS_ID 10
 #if defined(CONFIG_PANTECH_PMIC_MAX17058)
-#if defined(T_OSCAR)
+//#if defined(T_OSCAR) //-We commented in order to support other MSM8960-MAX17058 target (e.g. EF44S)
 #define MSM_8960_GSBI9_QUP_I2C_BUS_ID 9
-#endif
+//#endif
 #endif
 
 extern struct msm_rtb_platform_data msm8960_rtb_pdata;

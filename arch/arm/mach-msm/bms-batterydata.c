@@ -230,7 +230,7 @@ struct pm8921_bms_battery_data  pantech_battery_ext = {
 	.delta_rbatt_mohm	= 60,
 };
 
-#elif defined (CONFIG_MACH_MSM8960_MAGNUS)
+#elif defined (CONFIG_MACH_MSM8960_MAGNUS) || defined (CONFIG_MACH_MSM8960_EF44S)
 //STANDARD BATTERY
 //20120117 p13782 : LG battery cal data
 static struct single_row_lut fcc_temp_std = {
@@ -247,7 +247,7 @@ static struct sf_lut rbatt_sf_std = {
 	.rows	= 28,
 	.cols	= 5,
 	/* row_entries are temperature */
-	.row_entries	= = {-20, 0, 25, 40, 60},
+	.row_entries	= {-20, 0, 25, 40, 60},
 	.percent	= {100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40,
 					35, 30, 25, 20, 15, 10, 9, 8, 7, 6, 5,
 					4, 3, 2, 1},

@@ -1728,7 +1728,7 @@ void usb_disconnect(struct usb_device **pdev)
 #ifdef CONFIG_ANDROID_PANTECH_USB_OTG_INTENT
 	//printk("%s: disconnected\n", __func__);
 	set_otg_dev_state(0);
-#endif 
+#endif
 
 	usb_lock_device(udev);
 

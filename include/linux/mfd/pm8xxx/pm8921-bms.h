@@ -97,6 +97,33 @@
 #define CHG_SAFETY_TIME_EXT      600
 #define CHG_TTRKL_TIME_EXT       64
 #define BMS_ITEST_EXT  575
+#elif defined (CONFIG_MACH_MSM8960_EF44S)
+#define BATTERY_ID_STD_MIN       330000
+#define BATTERY_ID_STD_MAX       430000
+#define BATTERY_ID_EXT_MIN       330000
+#define BATTERY_ID_EXT_MAX       430000
+
+// STANDARD BATTERY
+#define CHG_MAX_VOLTAGE_STD      4360
+#define CHG_MIN_VOLTAGE_STD      3600
+#define CHG_RESUME_VOLTAGE_STD   30
+#define CHG_TERM_CURRENT_STD     50
+#define CHG_COOL_BAT_VOLTAGE_STD 4360
+#define CHG_WARM_BAT_VOLTAGE_STD 4360
+#define CHG_SAFETY_TIME_STD      600 //10hours
+#define CHG_TTRKL_TIME_STD       64
+#define BMS_ITEST_STD  1060
+
+// LARGE BATTERY
+#define CHG_MAX_VOLTAGE_EXT      4360
+#define CHG_MIN_VOLTAGE_EXT      3600
+#define CHG_RESUME_VOLTAGE_EXT   30
+#define CHG_TERM_CURRENT_EXT     50
+#define CHG_COOL_BAT_VOLTAGE_EXT 4360
+#define CHG_WARM_BAT_VOLTAGE_EXT 4360
+#define CHG_SAFETY_TIME_EXT      600 //10hours
+#define CHG_TTRKL_TIME_EXT       64
+#define BMS_ITEST_EXT  575
 #endif /* CONFIG_MACH_MSM8960_MAGNUS */
 
 #ifdef FEATURE_PANTECH_BATTERY_DUMMY
@@ -106,6 +133,9 @@
 #define BATTERY_ID_DUMMY_MIN_OLD   1420000
 #define BATTERY_ID_DUMMY_MAX_OLD   1620000
 #elif defined(CONFIG_MACH_MSM8960_OSCAR)
+#define BATTERY_ID_DUMMY_MIN   1420000
+#define BATTERY_ID_DUMMY_MAX   1620000
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
 #define BATTERY_ID_DUMMY_MIN   1420000
 #define BATTERY_ID_DUMMY_MAX   1620000
 #endif
@@ -210,7 +240,13 @@ struct pm8921_bms_platform_data {
 	enum battery_type		battery_type;
 	unsigned int			r_sense;
 	unsigned int			i_test;
+#ifdef CONFIG_MACH_MSM8960_EF44S
+	unsigned int			v_failure;
+	unsigned int			calib_delay_ms;
+#endif
+#ifndef CONFIG_MACH_MSM8960_EF44S
 	unsigned int			v_cutoff;
+#endif
 	unsigned int			max_voltage_uv;
 	unsigned int			rconn_mohm;
 	int				enable_fcc_learning;

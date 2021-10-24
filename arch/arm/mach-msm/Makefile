@@ -440,3 +440,8 @@ ifdef CONFIG_MSM_CPR
 obj-$(CONFIG_DEBUG_FS) += msm_cpr-debug.o
 endif
 obj-$(CONFIG_MSM_CPU_PWRCTL) +=  msm_cpu_pwrctl.o
+
+# CONFIG_WIFI_CONTROL_FUNC
+ifdef CONFIG_PANTECH_WLAN_BRCM
+obj-$(CONFIG_SKY_PANMAC) += panmac.o
+endif

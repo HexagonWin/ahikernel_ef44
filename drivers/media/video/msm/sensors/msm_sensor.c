@@ -688,10 +688,10 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 				rc = s_ctrl->func_tbl->sensor_check_af(s_ctrl, cdata.cfg.focus.dir);
 			}
 			break;
-
+// coninuous => continuous. Isn't this right?
 		case CFG_SET_CONTINUOUS_AF:
-			if (s_ctrl->func_tbl->sensor_set_coninuous_af) {
-				rc = s_ctrl->func_tbl->sensor_set_coninuous_af(s_ctrl, cdata.cfg.continuous_af);
+			if (s_ctrl->func_tbl->sensor_set_continuous_af) {
+				rc = s_ctrl->func_tbl->sensor_set_continuous_af(s_ctrl, cdata.cfg.continuous_af);
 			}
 			break;
 

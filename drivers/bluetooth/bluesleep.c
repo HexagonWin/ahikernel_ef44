@@ -45,6 +45,9 @@
 #include <linux/bitops.h>
 #include <linux/termios.h>
 #include <mach/gpio.h>
+//-alpha2x add linux gpio header file
+#include <linux/gpio.h>
+//-alpha2x
 #include <mach/msm_serial_hs.h>
 
 #include <net/bluetooth/bluetooth.h>
