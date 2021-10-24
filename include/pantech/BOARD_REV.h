@@ -10,6 +10,8 @@
 #include "oscar/BOARD_REV.h"
 #elif defined(CONFIG_MACH_MSM8960_MAGNUS)
 #include "magnus/BOARD_REV.h"
+#elif defined(CONFIG_MACH_MSM8960_EF44S)
+#include "ef44s/BOARD_REV.h"
 #endif
 
 #endif /*BOARD_REV_H*/
